@@ -1,0 +1,29 @@
+{
+	"name": "ROS2",
+	// "image": "ros2",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"workspaceMount": "source=${localWorkspaceFolder}/ws,target=/ros_ws,type=bind,consistency=cached", 
+	"workspaceFolder": "/ros_ws",
+	"privileged": true,
+	"containerEnv": {
+		"DISPLAY": "${localEnv:DISPLAY}",
+		"XAUTHORITY": "/home/ros/.Xauthority"
+	},
+	"runArgs": [
+		"--gpus", "all",
+		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
+		"--volume=${localEnv:XAUTHORITY}:/home/ros/.Xauthority"
+	],
+	// "remoteUser": "ros",
+	// "containerUser": "ros",
+	"postStartCommand": "git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-iot.vscode-ros"
+			]
+		}
+	}
+}
