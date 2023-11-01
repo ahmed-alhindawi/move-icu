@@ -67,6 +67,13 @@ RUN apt-get update -q && add-apt-repository universe \
 RUN apt-get update -qq && apt-get install -y \
   ros-dev-tools \
   ros-${ROS_DISTRO}-desktop \
+  ros-${ROS_DISTRO}-xacro \
+  ros-${ROS_DISTRO}-ament-cmake-clang-format \
+  ros-${ROS_DISTRO}-grid-map-rviz-plugin \
+  ros-${ROS_DISTRO}-nmea-msgs \
+  ros-${ROS_DISTRO}-geographic-msgs \
+  ros-${ROS_DISTRO}-diagnostic-updater \
+  ros-${ROS_DISTRO}-robot-localization \
   && rm -rf /var/lib/apt/lists/*
 
 RUN rosdep init && \
@@ -86,7 +93,21 @@ RUN apt-get update -qq &&\
     rm -rf /var/lib/apt/lists/*
 
 # Make some tools happy
-RUN mkdir -p /home/$USERNAME/Documents/ZED/
+RUN mkdir -p /root/Documents/ZED/
+
+COPY neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
+COPY .8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
+COPY .neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512 /usr/local/zed/resources/.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512
+COPY SN21837864.conf /usr/local/zed/settings/
+
+
+##############
+# PIP installs
+##############
+
+# some stupid incompatibilities means we have to re-install some specific packages
+RUN pip3 install numpy opencv-python timm torch torchvision torchaudio setuptools==58.0 tensorrt torch-tensorrt
+RUN pip3 install albumentations --no-binary qudida,albumentations 
 
 # Install gazebo
 # RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
@@ -96,5 +117,6 @@ RUN mkdir -p /home/$USERNAME/Documents/ZED/
 #   && rm -rf /var/lib/apt/lists/*
 
 COPY ./ros_entrypoint.sh /ros_entrypoint.sh
-CMD ["/ros_entrypoint.sh"]
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
 
