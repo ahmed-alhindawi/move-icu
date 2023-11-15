@@ -164,3 +164,7 @@ cython_debug/
 *.jit_model
 *.model
 .*
+
+*/build/
+*/install/
+*/log/

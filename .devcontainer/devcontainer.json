@@ -4,7 +4,7 @@
 	"build": {
 		"dockerfile": "Dockerfile"
 	},
-	"workspaceMount": "source=${localWorkspaceFolder}/ws,target=/ros_ws,type=bind,consistency=cached", 
+	"workspaceMount": "source=${localWorkspaceFolder}/workspace,target=/ros_ws,type=bind,consistency=cached", 
 	"workspaceFolder": "/ros_ws",
 	"privileged": true,
 	"containerEnv": {

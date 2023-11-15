@@ -95,10 +95,10 @@ RUN apt-get update -qq &&\
 # Make some tools happy
 RUN mkdir -p /root/Documents/ZED/
 
-COPY neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
-COPY .8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
-COPY .neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512 /usr/local/zed/resources/.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512
-COPY SN21837864.conf /usr/local/zed/settings/
+COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
+COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
+COPY *.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512 /usr/local/zed/resources/.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512
+COPY *SN21837864.conf /usr/local/zed/settings/
 
 
 ##############
@@ -106,8 +106,10 @@ COPY SN21837864.conf /usr/local/zed/settings/
 ##############
 
 # some stupid incompatibilities means we have to re-install some specific packages
-RUN pip3 install numpy opencv-python timm torch torchvision torchaudio setuptools==58.0 tensorrt torch-tensorrt
+RUN pip3 install numpy opencv-python timm torch torchvision torchaudio setuptools==58.0 
 RUN pip3 install albumentations --no-binary qudida,albumentations 
+# RUN pip3 install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
+
 
 # Install gazebo
 # RUN wget https://packages.osrfoundation.org/gazebo.gpg -O /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg \
