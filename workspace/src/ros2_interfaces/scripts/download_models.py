@@ -58,12 +58,6 @@ def download_s3fd_model():
                          "3b5a9888bf0beb93c177db5a18375a6c")
     
 
-def download_all():
-    download_landmark_models()
-    download_landmark_jit_models()
-    download_s3fd_model()
-
-
-print("downloading")
-download_all()
-print("done")
+download_landmark_models()
+download_landmark_jit_models()
+download_s3fd_model()
