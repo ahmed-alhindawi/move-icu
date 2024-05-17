@@ -1,4 +1,4 @@
-# 🎯 CARTESIAN
+# 🎯 MOVE-ICU
 
 This is a respository that facilitates the deployment of non-invasive (i.e., camera based) physiological signals.
 
