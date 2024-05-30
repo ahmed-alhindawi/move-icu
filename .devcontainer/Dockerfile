@@ -68,6 +68,7 @@ USER $USERNAME
 WORKDIR /home/$USERNAME
 RUN python3 -m venv $VIRTUAL_ENV
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN pip3 install --upgrade pip
 
 #####
 # ROS 
@@ -93,13 +94,12 @@ RUN sudo apt-get update -qq && sudo apt-get install -y \
 RUN sudo rosdep init && \
   rosdep update --rosdistro $ROS_DISTRO
 
+
 ################
 # StereoLabs ZED
 ################
 
 WORKDIR /tmp/
-RUN pip3 install --upgrade pip
-RUN pip3 install numpy opencv-python pyopengl requests
 RUN wget -q -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.1/cu121/ubuntu22 && \
     sudo chmod +x ZED_SDK_Linux.run ; sudo ./ZED_SDK_Linux.run silent skip_cuda skip_python && \
     sudo ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so && \
@@ -109,20 +109,16 @@ RUN wget -q -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.1/cu12
 # Make some tools happy
 RUN mkdir -p /home/$USERNAME/Documents/ZED/
 
+##########################
+# Install pip requirements
+##########################
+COPY requirements.txt .
+RUN pip3 install -r requirements.txt
+
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
 # COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
 # COPY *.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512 /usr/local/zed/resources/.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512
 # COPY *SN21837864.conf /usr/local/zed/settings/
-
-
-##############
-# PIP installs
-##############
-
-# some stupid incompatibilities means we have to re-install some specific packages
-RUN pip3 install numpy opencv-python timm torch torchvision torchaudio setuptools 
-# RUN pip3 install albumentations --no-binary qudida,albumentations 
-# RUN pip3 install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
 
 
 # Install gazebo
