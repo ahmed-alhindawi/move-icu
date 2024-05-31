@@ -4,16 +4,14 @@ import rclpy
 from rclpy.node import Node
 import torch
 import albumentations as albu
-from albumentations import pytorch
+import albumentations.pytorch
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import cv2
 from cartesian_interfaces.msg import StampedBoundingBoxList, StampedFacialLandmarksList, FacialLandmarks
 import os
 from message_filters import TimeSynchronizer, Subscriber
 from landmark_d.LandmarkEstimationResNet import LandmarkEstimationResNet
 from landmark_d.ros_np_multiarray import to_multiarray_f64
-import time
 
 
 class LandmarkExtractor(Node):
