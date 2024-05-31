@@ -113,7 +113,7 @@ ENV VIRTUAL_ENV=/home/$USERNAME/venv
 RUN python3 -m venv $VIRTUAL_ENV --system-site-packages --symlinks
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip3 install --upgrade pip
-RUN pip3 install torch torchvision timm opencv-python setuptools==58.2.0
+RUN pip3 install torch torchvision timm opencv-python setuptools==58.2.0 albumentations --no-binary albumentations,qudida
 ENV PYTHONPATH=/home/$USERNAME/venv/lib/python3.10/site-packages:$PYTHONPATH
 
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
