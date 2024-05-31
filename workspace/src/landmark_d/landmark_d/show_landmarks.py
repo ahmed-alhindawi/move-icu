@@ -19,6 +19,8 @@ class ShowLandmarks(Node):
         self._ts = TimeSynchronizer(subscribers, 10)
         self._ts.registerCallback(self.callback)
 
+        self._publisher = self.create_publisher(Image, "/landmarks_image", 10)
+
         self._cvbridge = CvBridge()
 
     def callback(self, img_msg, ldmks_msg, bboxes_msg):
@@ -26,10 +28,11 @@ class ShowLandmarks(Node):
         
         for ldmks_data, bbox_data in zip(ldmks_msg.data, bboxes_msg.data):
             ldmks = to_numpy_f64(ldmks_data.landmarks)
-            img = self._draw_face(ldmks, img, bbox_data, draw_confidence=True, confidence_radius=5)
+            img = self._draw_face(ldmks, img, bbox_data, draw_confidence=True, confidence_radius=2)
+
+        img_msg = self._cvbridge.cv2_to_imgmsg(img, encoding="bgr8")
+        self._publisher.publish(img_msg)
         
-        cv2.imshow("img", img)
-        cv2.waitKey(1)
 
     @staticmethod
     def _draw_face(ldmks, img, face_box, color=(255, 255, 255), draw_confidence=False, confidence_radius=2):

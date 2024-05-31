@@ -1,10 +1,9 @@
 {
 	"name": "ROS2",
 	"build": {
-		"dockerfile": "Dockerfile",
-		"context": ".."
+		"dockerfile": "Dockerfile"
 	},
-	"mounts": ["source=${localWorkspaceFolder},target=/workspace/,type=bind,consistency=cached"], 
+	"mounts": ["source=${localWorkspaceFolder}/workspace,target=/workspace/,type=bind,consistency=cached"], 
 	"workspaceFolder": "/workspace",
 	"containerEnv": {
 		"DISPLAY": ":0",
@@ -13,6 +12,7 @@
 	"runArgs": [
 		"--userns=keep-id",
 		"--device", "nvidia.com/gpu=all",
+		"--device", "/dev/video0",
 		"--security-opt=label=disable",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
 		"--volume=${localEnv:XAUTHORITY}:/home/ros/.Xauthority"

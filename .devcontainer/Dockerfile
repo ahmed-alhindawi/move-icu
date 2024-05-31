@@ -35,7 +35,6 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 ARG USERNAME=ros
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-ENV VIRTUAL_ENV=/home/$USERNAME/venv
 
 ENV DEBIAN_FRONTEND=noninteractive
 
@@ -66,9 +65,7 @@ RUN groupadd --gid $USER_GID $USERNAME \
 
 USER $USERNAME
 WORKDIR /home/$USERNAME
-RUN python3 -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-RUN pip3 install --upgrade pip
+
 
 #####
 # ROS 
@@ -112,8 +109,12 @@ RUN mkdir -p /home/$USERNAME/Documents/ZED/
 ##########################
 # Install pip requirements
 ##########################
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+ENV VIRTUAL_ENV=/home/$USERNAME/venv
+RUN python3 -m venv $VIRTUAL_ENV --system-site-packages --symlinks
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN pip3 install --upgrade pip
+RUN pip3 install torch torchvision timm opencv-python setuptools==58.2.0
+ENV PYTHONPATH=/home/$USERNAME/venv/lib/python3.10/site-packages:$PYTHONPATH
 
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
 # COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
@@ -127,8 +128,3 @@ RUN pip3 install -r requirements.txt
 #   && apt-get update && apt-get install -q -y --no-install-recommends \
 #     ros-iron-gazebo* \
 #   && rm -rf /var/lib/apt/lists/*
-
-COPY ./ros_entrypoint.sh /ros_entrypoint.sh
-ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["bash"]
-

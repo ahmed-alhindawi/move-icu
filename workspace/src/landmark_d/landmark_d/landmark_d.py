@@ -13,7 +13,6 @@ import os
 from message_filters import TimeSynchronizer, Subscriber
 from landmark_d.LandmarkEstimationResNet import LandmarkEstimationResNet
 from landmark_d.ros_np_multiarray import to_multiarray_f64
-import torch_tensorrt
 import time
 
 
@@ -26,10 +25,10 @@ class LandmarkExtractor(Node):
         self._ts = TimeSynchronizer(subscribers, 10)
         self._ts.registerCallback(self.callback)
 
-        modelpaths = glob(os.path.join(ament_index_python.get_package_share_directory("cartesian_interfaces"), "models", "landmark_*.ckpt.jit_model"))
+        modelpaths = glob(os.path.join(ament_index_python.get_package_share_directory("cartesian_interfaces"), "models", "landmark_*.ckpt"))
         self.get_logger().info(f"Found {len(modelpaths)} models for landmark extraction, Loading...")
-        self.models = [self._load_jit_network(path) for path in modelpaths]
-        self.get_logger().info(f"...Done")
+        self.models = [self._load_network(path) for path in modelpaths]
+        self.get_logger().info("...Done")
 
         self.landmark_extractor_transform = albu.Compose([
             albu.Resize(height=112, width=112),
@@ -45,10 +44,7 @@ class LandmarkExtractor(Node):
         img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg, desired_encoding="bgr8")
         
         # pick the face with the biggest confidence
-        s_time = time.time()
         ldmks = self._get_landmarks(img, bboxes_msg.data, landmark_extractors=self.models, transform=self.landmark_extractor_transform, device="cuda:0")
-        e_time = time.time()
-        self.get_logger().info(f"{e_time - s_time}")
         if ldmks is None:
             return
         
@@ -80,19 +76,6 @@ class LandmarkExtractor(Node):
         model.load_state_dict(state_dict)
         model.eval()
         model.to("cuda:0")
-        # model = torch.compile(model, mode="default", backend="inductor")
-        model = torch_tensorrt.compile(model,
-            inputs = [
-                torch_tensorrt.Input(
-                    shape = [1, 3, 112, 112],
-                    dtype=torch.float) # Datatype of input tensor. Allowed options torch.(float|half|int8|int32|bool)
-            ],
-            truncate_long_and_double=True,
-            enabled_precisions = {torch.float32}, # Run with FP16
-        )
-        # torch.jit.save(model, path + ".jit_model")
-        # model = torch.jit.trace(model, example_inputs=torch.rand((1, 3, 112, 112), dtype=torch.float, device="cuda:0"))
-        # model = torch.jit.optimize_for_inference(model)
 
         return model
 
@@ -182,17 +165,3 @@ def main(args=None):
 
 if __name__ == '__main__':
     main()
-
-
-# trt_ts_module = torch_tensorrt.compile(traced_script_module,
-#     # If the inputs to the module are plain Tensors, specify them via the `inputs` argument:
-#     inputs = [
-#         torch_tensorrt.Input(
-#             shape=[1, 3, 112, 112],
-#             dtype=torch.float) # Datatype of input tensor. Allowed options torch.(float|half|int8|int32|bool)
-#     ],
-#     enabled_precisions = {torch.float32}, # Run with FP16
-# )
-
-# for _ in tqdm(range(10000)):
-#     _ = trt_ts_module(ex_input)

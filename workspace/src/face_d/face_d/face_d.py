@@ -16,7 +16,7 @@ class FaceDetector(Node):
         super().__init__('face_detector')
         self.subscriber_ = self.create_subscription(Image, "/camera", self.callback, 10)
         self.publisher_ = self.create_publisher(StampedBoundingBoxList, '/faces', 10)
-        path_to_model = os.path.join(get_package_share_directory("cartesian_interfaces"), "models", "s3fd_facedetector.pth")
+        path_to_model = os.path.join(get_package_share_directory("cartesian_interfaces"), "models", "s3fd_facedetector.ckpt")
         self.get_logger().info(f"Loading model from {path_to_model}")
 
         self._sfd = sfd_detector.SFDDetector(device="cuda:0", path_to_detector=path_to_model)
