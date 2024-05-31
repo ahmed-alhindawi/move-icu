@@ -29,3 +29,27 @@ Working on:
 
 ## Future work
 We aim to incoorporate multi-modal sensing using depth, infra-red, and motion tracking
+
+## Example
+
+### Setup
+To run the landmark extraction demo, open a terminal into the loaded container in VSCode using the `dev containers` extension. Then:
+`source /opt/ros/humble/setup.bash`
+`source /home/ros/venv/bin/activate`
+
+Build the workspace:
+`colcon build --symlink-install`
+
+### Run
+Once that finishes, source the installation files:
+`source install/setup.bash`
+
+Then run the demo (make sure you have a webcam attached to /dev/video0):
+`ros2 launch landmark_d webcam_landmark_d.launch.py`
+
+### View
+Then view the output using `rqt`; in another terminal:
+`source /opt/ros/humble/setup.bash`
+`rqt`
+
+Use the plugins file to visualise Images, there should be a `/landmarks_image` topic that can visualise that.
