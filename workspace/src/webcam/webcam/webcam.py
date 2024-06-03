@@ -8,7 +8,7 @@ import cv2
 class WebcamPublisher(Node):
     def __init__(self):
         super().__init__("webcam_publisher")
-        self.publisher_ = self.create_publisher(Image, "/camera", 10)
+        self.publisher_ = self.create_publisher(Image, "/camera", 0)
         self.declare_parameter("camera_index", 0)
         self._cam_idx = (
             self.get_parameter("camera_index").get_parameter_value().integer_value

@@ -170,9 +170,6 @@ class LandmarkExtractor(Node):
             transformed_img = transformed_img["image"].unsqueeze(0)
             face_imgs.append(transformed_img)
 
-        if len(face_imgs) == 0:
-           return None 
-
         transformed_imgs = torch.vstack(face_imgs).to(device)
 
         num_models = len(landmark_extractors)
@@ -198,8 +195,6 @@ class LandmarkExtractor(Node):
             )
         ) * sum_variances
         result = torch.cat([output, sum_variances], dim=-1)
-        result[..., 0] = (result[..., 0] * (x2 - x1)) + (x1 + (x2 - x1) / 2)
-        result[..., 1] = (result[..., 1] * (y2 - y1)) + (y1 + (y2 - y1) / 2)
 
         return result
 

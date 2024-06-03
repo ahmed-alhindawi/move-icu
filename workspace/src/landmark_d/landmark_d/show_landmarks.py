@@ -25,13 +25,63 @@ class ShowLandmarks(Node):
 
         self._cvbridge = CvBridge()
 
+    @staticmethod
+    def _get_square_box(box):
+        """Get a square box out of the given box, by expanding it."""
+        left_x, top_y, right_x, bottom_y = box
+
+        box_width = right_x - left_x
+        box_height = bottom_y - top_y
+
+        # Check if box is already a square. If not, make it a square.
+        diff = box_height - box_width
+        delta = int(abs(diff) / 2)
+
+        if diff == 0:  # Already a square.
+            return box
+        elif diff > 0:  # Height > width, a slim box.
+            left_x -= delta
+            right_x += delta
+            if diff % 2 == 1:
+                right_x += 1
+        else:  # Width > height, a short box.
+            top_y -= delta
+            bottom_y += delta
+            if diff % 2 == 1:
+                bottom_y += 1
+
+        return [left_x, top_y, right_x, bottom_y]
+
+    @staticmethod
+    def _move_box(box, offset):
+        """Move the box to direction specified by vector offset"""
+        left_x = box.xmin + offset[0]
+        top_y = box.ymin + offset[1]
+        right_x = box.xmax + offset[0]
+        bottom_y = box.ymax + offset[1]
+
+        return [left_x, top_y, right_x, bottom_y]
+
     def callback(self, img_msg, ldmks_msg, bboxes_msg):
         img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg, desired_encoding="bgr8")
 
-        for ldmks_data, bbox_data in zip(ldmks_msg.data, bboxes_msg.data):
+        for ldmks_data, face_box in zip(ldmks_msg.data, bboxes_msg.data):
             ldmks = to_numpy_f64(ldmks_data.landmarks)
+            _diff_height_width = (face_box.ymax - face_box.ymin) - (
+                face_box.xmax - face_box.xmin
+            )
+            _offset_y = int(abs(_diff_height_width / 2))
+            _box_moved = self._move_box(face_box, [0, _offset_y])
+
+            # Make box square.
+            x1, y1, x2, y2 = self._get_square_box(_box_moved)
+            # clamp to image boundaries
+            x1, y1 = max(0, x1), max(0, y1)
+            x2, y2 = min(img.shape[1], x2), min(img.shape[0], y2)
+            ldmks[..., 0] = (ldmks[..., 0] * (x2 - x1)) + (x1 + ((x2 - x1) / 2.0))
+            ldmks[..., 1] = (ldmks[..., 1] * (y2 - y1)) + (y1 + ((y2 - y1) / 2.0))
             img = self._draw_face(
-                ldmks, img, bbox_data, draw_confidence=True, confidence_radius=2
+                ldmks, img, face_box, draw_confidence=True, confidence_radius=3
             )
 
         img_msg = self._cvbridge.cv2_to_imgmsg(img, encoding="bgr8")
