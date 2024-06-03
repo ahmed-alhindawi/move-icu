@@ -7,12 +7,12 @@ import albumentations as albu
 import albumentations.pytorch
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-from cartesian_interfaces.msg import StampedBoundingBoxList, StampedFacialLandmarksList, FacialLandmarks
+from moveicu_interfaces.msg import StampedBoundingBoxList, StampedFacialLandmarksList, FacialLandmarks
 import os
 from message_filters import TimeSynchronizer, Subscriber
 from landmark_d.LandmarkEstimationResNet import LandmarkEstimationResNet
 from landmark_d.ros_np_multiarray import to_multiarray_f64
-
+from rclpy import qos
 
 class LandmarkExtractor(Node):
 
@@ -23,7 +23,7 @@ class LandmarkExtractor(Node):
         self._ts = TimeSynchronizer(subscribers, 10)
         self._ts.registerCallback(self.callback)
 
-        modelpaths = glob(os.path.join(ament_index_python.get_package_share_directory("cartesian_interfaces"), "models", "landmark_*.ckpt"))
+        modelpaths = glob(os.path.join(ament_index_python.get_package_share_directory("moveicu_interfaces"), "models", "landmark_*.ckpt"))
         self.get_logger().info(f"Found {len(modelpaths)} models for landmark extraction, Loading...")
         self.models = [self._load_network(path) for path in modelpaths]
         self.get_logger().info("...Done")

@@ -17,7 +17,7 @@ setup(
     install_requires=['setuptools'],
     zip_safe=True,
     maintainer='root',
-    maintainer_email='a.al-hindawi@imperial.ac.uk',
+    maintainer_email='a.al-hindawi@ucl.ac.uk',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],

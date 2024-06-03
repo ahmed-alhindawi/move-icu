@@ -1,13 +1,11 @@
 from rclpy.node import Node
 from sensor_msgs.msg import Image
-from cv_bridge import CvBridge
 import cv2
 from geometry_msgs.msg import PoseStamped
 import numpy as np
 import os
 import ament_index_python
 from rclpy.impl.implementation_singleton import rclpy_implementation as _rclpy
-from rclpy.node import Node
 from rclpy.signals import SignalHandlerGuardCondition
 from rclpy.utilities import timeout_sec_to_nsec
 from sensor_msgs.msg import CameraInfo
@@ -99,7 +97,7 @@ class ShowLandmarks(Node):
                 return False, None, None
 
             # this is generic point stabiliser, the underlying representation doesn't matter
-            rotation_vector, translation_vector = self.apply_kalman_filter_head_pose(subject_id, rodrigues_rotation, translation_vector / 1000.0)
+            rotation_vector, translation_vector = self.apply_kalman_filter_head_pose(0, rodrigues_rotation, translation_vector / 1000.0)
 
             rotation_vector[0] += self.head_pitch
 
@@ -108,7 +106,7 @@ class ShowLandmarks(Node):
             _m = np.zeros((4, 4))
             _m[:3, :3] = _rotation_matrix
             _m[3, 3] = 1
-            _rpy_rotation = np.array(transformations.euler_from_matrix(_m))
+            _rpy_rotation = np.array(_euler_from_matrix(_m))
 
             return success, _rpy_rotation, translation_vector
                
