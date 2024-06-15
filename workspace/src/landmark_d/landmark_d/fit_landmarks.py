@@ -11,6 +11,10 @@ from rclpy.utilities import timeout_sec_to_nsec
 from sensor_msgs.msg import CameraInfo
 from image_geometry import PinholeCameraModel
 from ros_np_multiarray import to_numpy_f64
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+import tf2_ros
+import tf2_py
+import tf2_tools
 
 class ShowLandmarks(Node):
 
@@ -62,11 +66,18 @@ class ShowLandmarks(Node):
         return False, None
 
     def __init__(self):
-        super().__init__('face_detector')
-        self.subscriber_ = self.create_subscription(Image, "/landmarks", self.callback, 10)
-        self.publisher_ = self.create_publisher(PoseStamped, '/head_pose', 10)
+        super().__init__('threed_landmarks')
 
-        f68_fpath = os.path.join(ament_index_python.get_package_share_directory("cartesian_interfaces"), "models", "face_68.txt")
+        _qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
+        self.subscriber_ = self.create_subscription(Image, "/landmarks", self.callback, qos_profile=_qos)
+        self.publisher_ = self.create_publisher(PoseStamped, '/head_pose', qos_profile=_qos)
+
+        f68_fpath = os.path.join(ament_index_python.get_package_share_directory("ros2_interfaces"), "models", "face_68.txt")
 
         with open(f68_fpath) as f:
             raw_values = f.readlines()
@@ -97,11 +108,11 @@ class ShowLandmarks(Node):
                 return False, None, None
 
             # this is generic point stabiliser, the underlying representation doesn't matter
-            rotation_vector, translation_vector = self.apply_kalman_filter_head_pose(0, rodrigues_rotation, translation_vector / 1000.0)
+            # rotation_vector, translation_vector = self.apply_kalman_filter_head_pose(0, rodrigues_rotation, translation_vector / 1000.0)
 
-            rotation_vector[0] += self.head_pitch
+            # rotation_vector[0] += self.head_pitch
 
-            _rotation_matrix, _ = cv2.Rodrigues(rotation_vector)
+            _rotation_matrix, _ = cv2.Rodrigues(rodrigues_rotation)
             _rotation_matrix = np.matmul(_rotation_matrix, np.array([[0, 1, 0], [0, 0, -1], [-1, 0, 0]]))
             _m = np.zeros((4, 4))
             _m[:3, :3] = _rotation_matrix

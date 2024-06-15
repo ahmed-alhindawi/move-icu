@@ -4,24 +4,31 @@ from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
 from moveicu_interfaces.msg import StampedBoundingBoxList, StampedFacialLandmarksList
-from message_filters import TimeSynchronizer, Subscriber
+import message_filters
 from landmark_d.ros_np_multiarray import to_numpy_f64
 import numpy as np
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy 
 
 
 class ShowLandmarks(Node):
     def __init__(self):
         super().__init__("face_detector")
 
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
         subscribers = [
-            Subscriber(self, Image, "/camera"),
-            Subscriber(self, StampedFacialLandmarksList, "/landmarks"),
-            Subscriber(self, StampedBoundingBoxList, "/faces"),
+            message_filters.Subscriber(self, Image, "/camera", qos_profile=qos_profile),
+            message_filters.Subscriber(self, StampedFacialLandmarksList, "/landmarks", qos_profile=qos_profile),
+            message_filters.Subscriber(self, StampedBoundingBoxList, "/faces", qos_profile=qos_profile),
         ]
-        self._ts = TimeSynchronizer(subscribers, 5)
+        self._ts = message_filters.TimeSynchronizer(subscribers, 5)
         self._ts.registerCallback(self.callback)
 
-        self._publisher = self.create_publisher(Image, "/landmarks_image", 10)
+        self._publisher = self.create_publisher(Image, "/landmarks_image", 1)
 
         self._cvbridge = CvBridge()
 

@@ -17,16 +17,24 @@ import os
 from message_filters import TimeSynchronizer, Subscriber
 from landmark_d.LandmarkEstimationResNet import LandmarkEstimationResNet
 from landmark_d.ros_np_multiarray import to_multiarray_f64
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 
 class LandmarkExtractor(Node):
     def __init__(self):
         super().__init__("face_detector")
+
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
         subscribers = [
-            Subscriber(self, Image, "/camera"),
-            Subscriber(self, StampedBoundingBoxList, "/faces"),
+            Subscriber(self, Image, "/camera", qos_profile=qos_profile),
+            Subscriber(self, StampedBoundingBoxList, "/faces", qos_profile=qos_profile),
         ]
-        self._ts = TimeSynchronizer(subscribers, 10)
+        self._ts = TimeSynchronizer(subscribers, 5)
         self._ts.registerCallback(self.callback)
 
         modelpaths = glob(

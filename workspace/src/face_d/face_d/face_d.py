@@ -7,14 +7,22 @@ from moveicu_interfaces.msg import BoundingBox, StampedBoundingBoxList
 from face_d.SFD import sfd_detector
 from ament_index_python.packages import get_package_share_directory
 import os
-from rclpy import qos
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+
 
 class FaceDetector(Node):
 
     def __init__(self):
         super().__init__('face_detector')
-        self.subscriber_ = self.create_subscription(Image, "/camera", self.callback, qos.qos_profile_sensor_data)
-        self.publisher_ = self.create_publisher(StampedBoundingBoxList, '/faces', 10)
+
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
+        self.subscriber_ = self.create_subscription(Image, "/camera", self.callback, qos_profile=qos_profile)
+        self.publisher_ = self.create_publisher(StampedBoundingBoxList, '/faces', qos_profile=qos_profile)
         path_to_model = os.path.join(get_package_share_directory("moveicu_interfaces"), "models", "s3fd_facedetector.ckpt")
         self.get_logger().info(f"Loading model from {path_to_model}")
 
