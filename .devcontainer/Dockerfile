@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.2.0-devel-ubuntu22.04
+FROM docker.io/nvidia/cuda:12.2.0-devel-ubuntu22.04
 
 #############################
 # Install necessary libraries
@@ -55,16 +55,28 @@ ENV ROS_VERSION=2
 
 RUN echo "Europe/London" > /etc/localtime ; echo "CUDA Version 12.2.0" > /usr/local/cuda/version.txt
 
+###################
+# CREATE LOCAL USER
+###################
+RUN groupadd --gid $USER_GID $USERNAME \
+  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
+  && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+  && chmod 0440 /etc/sudoers.d/$USERNAME
+
+USER $USERNAME
+WORKDIR /home/$USERNAME
+
+
 #####
 # ROS 
 #####
 
-RUN apt-get update -q && add-apt-repository universe \
-  && curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
-  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null \
-  && rm -rf /var/lib/apt/lists/*
+RUN sudo apt-get update -q && sudo add-apt-repository universe \
+  && sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+  && sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null \
+  && sudo rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update -qq && apt-get install -y \
+RUN sudo apt-get update -qq && sudo apt-get install -y \
   ros-dev-tools \
   ros-${ROS_DISTRO}-desktop \
   ros-${ROS_DISTRO}-xacro \
@@ -74,41 +86,43 @@ RUN apt-get update -qq && apt-get install -y \
   ros-${ROS_DISTRO}-geographic-msgs \
   ros-${ROS_DISTRO}-diagnostic-updater \
   ros-${ROS_DISTRO}-robot-localization \
-  && rm -rf /var/lib/apt/lists/*
+  ros-${ROS_DISTRO}-common-interfaces \
+  && sudo rm -rf /var/lib/apt/lists/*
 
-RUN rosdep init && \
-  rosdep update --rosdistro $ROS_DISTRO --as-root apt:false
+RUN sudo rosdep init && \
+  rosdep update --rosdistro $ROS_DISTRO
+
 
 ################
 # StereoLabs ZED
 ################
 
 WORKDIR /tmp/
-RUN apt-get update -qq &&\
-    pip3 install numpy opencv-python pyopengl requests &&\
-    wget -q -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.0/cu121/ubuntu22 && \
-    chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run -- silent skip_cuda skip_python && \
-    ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so && \
+RUN wget -q -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.1/cu121/ubuntu22 && \
+    sudo chmod +x ZED_SDK_Linux.run ; sudo ./ZED_SDK_Linux.run silent skip_cuda skip_python && \
+    sudo ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so && \
     rm ZED_SDK_Linux.run && \
-    rm -rf /var/lib/apt/lists/*
+    sudo rm -rf /var/lib/apt/lists/*
 
 # Make some tools happy
-RUN mkdir -p /root/Documents/ZED/
+RUN mkdir -p /home/$USERNAME/Documents/ZED/
 
-COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
-COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
-COPY *.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512 /usr/local/zed/resources/.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512
-COPY *SN21837864.conf /usr/local/zed/settings/
+##########################
+# Install pip requirements
+##########################
+ENV VIRTUAL_ENV=/home/$USERNAME/venv
+RUN python3 -m venv $VIRTUAL_ENV --system-site-packages --symlinks
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+RUN pip3 install --upgrade pip
+COPY requirements.txt .
+# RUN pip3 install -r requirements.txt
+RUN pip3 install umpy opencv-python timm torch torchvision torchaudio setuptools==58.0 albumentations --no-binary qudida,albumentations
+ENV PYTHONPATH=/home/$USERNAME/venv/lib/python3.10/site-packages:$PYTHONPATH
 
-
-##############
-# PIP installs
-##############
-
-# some stupid incompatibilities means we have to re-install some specific packages
-RUN pip3 install numpy opencv-python timm torch torchvision torchaudio setuptools==58.0 
-RUN pip3 install albumentations --no-binary qudida,albumentations 
-# RUN pip3 install torch-tensorrt -f https://github.com/NVIDIA/Torch-TensorRT/releases
+# COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
+# COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
+# COPY *.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512 /usr/local/zed/resources/.neural_depth_2.0.model_optimized-fbcbl-1-75-12020-8801-8600-25-384-6144-48-64-512-72-0-0e53-512
+# COPY *SN21837864.conf /usr/local/zed/settings/
 
 
 # Install gazebo
@@ -117,8 +131,3 @@ RUN pip3 install albumentations --no-binary qudida,albumentations
 #   && apt-get update && apt-get install -q -y --no-install-recommends \
 #     ros-iron-gazebo* \
 #   && rm -rf /var/lib/apt/lists/*
-
-COPY ./ros_entrypoint.sh /ros_entrypoint.sh
-ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["bash"]
-

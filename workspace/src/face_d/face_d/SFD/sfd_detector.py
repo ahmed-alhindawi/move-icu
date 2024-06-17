@@ -31,9 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
 import torch
-import cv2
 import numpy as np
-import torch_tensorrt
 
 try:
     from .net_s3fd import s3fd
@@ -102,7 +100,6 @@ class SFDDetector(object):
         img = img - self.__WHITENING
         img = torch.Tensor(img).float().to(device)
         img = img.permute((2, 0, 1)).unsqueeze(0)
-        print(img.shape)
 
         with torch.no_grad():
             nn_out = net(img)

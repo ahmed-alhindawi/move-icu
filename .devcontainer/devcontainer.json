@@ -1,29 +1,32 @@
 {
 	"name": "ROS2",
-	// "image": "ros2",
 	"build": {
-		"dockerfile": "Dockerfile"
+		"dockerfile": "Dockerfile",
+		"context": ".."
 	},
-	"workspaceMount": "source=${localWorkspaceFolder}/workspace,target=/ros_ws,type=bind,consistency=cached", 
-	"workspaceFolder": "/ros_ws",
-	"privileged": true,
+	"mounts": ["source=${localWorkspaceFolder}/workspace,target=/workspace/,type=bind,consistency=cached"], 
+	"workspaceFolder": "/workspace",
 	"containerEnv": {
-		"DISPLAY": "${localEnv:DISPLAY}",
+		"DISPLAY": ":0",
 		"XAUTHORITY": "/home/ros/.Xauthority"
 	},
 	"runArgs": [
-		"--gpus", "all",
+		"--userns=keep-id",
+		"--device", "nvidia.com/gpu=all",
+		"--device", "/dev/video0",
+		"--security-opt=label=disable",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
 		"--volume=${localEnv:XAUTHORITY}:/home/ros/.Xauthority"
 	],
 	// "remoteUser": "ros",
-	// "containerUser": "ros",
+	"containerUser": "ros",
 	"postStartCommand": "git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}",
 	"customizations": {
 		"vscode": {
 			"extensions": [
 				"ms-iot.vscode-ros",
-				"ms-python.vscode-pylance"
+				"charliermarsh.ruff",
+				"vscodevim.vim"
 			]
 		}
 	}

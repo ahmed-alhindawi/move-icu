@@ -7,13 +7,15 @@ from std_msgs.msg import (Float32MultiArray, Float64MultiArray,
                           Int32MultiArray, Int64MultiArray,
                           UInt8MultiArray, UInt16MultiArray,
                           UInt32MultiArray, UInt64MultiArray)
+from functools import partial
+
 
 def _numpy_to_multiarray(multiarray_type, np_array):
     multiarray = multiarray_type()
     multiarray.layout.dim = [MultiArrayDimension(label='dim%d' % i,
                                                  size=np_array.shape[i],
                                                  stride=np_array.shape[i] * np_array.dtype.itemsize) for i in range(np_array.ndim)]
-    multiarray.data = np_array.reshape([1, -1])[0].tolist();
+    multiarray.data = np_array.reshape([1, -1])[0].tolist()
     return multiarray
 
 def _multiarray_to_numpy(pytype, dtype, multiarray):
@@ -21,7 +23,6 @@ def _multiarray_to_numpy(pytype, dtype, multiarray):
     return np.array(multiarray.data, dtype=pytype).reshape(dims).astype(dtype)
 
 
-from functools import partial
 
 to_multiarray_f32 = partial(_numpy_to_multiarray, Float32MultiArray)
 to_numpy_f32 = partial(_multiarray_to_numpy, float, np.float32)

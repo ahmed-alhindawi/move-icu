@@ -1,0 +1,1 @@
+/workspace/src/build/moveicu_interfaces/rosidl_generator_cpp/moveicu_interfaces/msg/stamped_bounding_box_list.hpp

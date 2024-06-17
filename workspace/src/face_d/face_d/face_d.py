@@ -1,23 +1,29 @@
 import rclpy
 from rclpy.node import Node
-
-from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
-from cartesian_interfaces.msg import BoundingBox, StampedBoundingBoxList
+from moveicu_interfaces.msg import BoundingBox, StampedBoundingBoxList
 from face_d.SFD import sfd_detector
 from ament_index_python.packages import get_package_share_directory
 import os
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 
 class FaceDetector(Node):
 
     def __init__(self):
         super().__init__('face_detector')
-        self.subscriber_ = self.create_subscription(Image, "/camera", self.callback, 10)
-        self.publisher_ = self.create_publisher(StampedBoundingBoxList, '/faces', 10)
-        path_to_model = os.path.join(get_package_share_directory("cartesian_interfaces"), "models", "s3fd_facedetector.pth")
+
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
+        self.subscriber_ = self.create_subscription(Image, "/camera", self.callback, qos_profile=qos_profile)
+        self.publisher_ = self.create_publisher(StampedBoundingBoxList, '/faces', qos_profile=qos_profile)
+        path_to_model = os.path.join(get_package_share_directory("moveicu_interfaces"), "models", "s3fd_facedetector.ckpt")
         self.get_logger().info(f"Loading model from {path_to_model}")
 
         self._sfd = sfd_detector.SFDDetector(device="cuda:0", path_to_detector=path_to_model)
