@@ -1,7 +1,8 @@
 {
 	"name": "ROS2",
 	"build": {
-		"dockerfile": "Dockerfile"
+		"dockerfile": "Dockerfile",
+		"context": ".."
 	},
 	"mounts": ["source=${localWorkspaceFolder}/workspace,target=/workspace/,type=bind,consistency=cached"], 
 	"workspaceFolder": "/workspace",

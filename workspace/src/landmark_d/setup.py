@@ -24,7 +24,8 @@ setup(
     entry_points={
         'console_scripts': [
             'landmark_d = landmark_d.landmark_d:main',
-            'show_landmarks = landmark_d.show_landmarks:main'
+            'show_landmarks = landmark_d.show_landmarks:main',
+            'fit_landmarks = landmark_d.fit_landmarks:main'
         ],
     },
 )
