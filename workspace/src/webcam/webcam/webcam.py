@@ -29,7 +29,7 @@ class WebcamPublisher(Node):
         self._cam_idx = (
             self.get_parameter("camera_index").get_parameter_value().integer_value
         )
-        self.declare_parameter("camera_info_path", os.path.join(get_package_share_directory("moveicu_interfaces"), "models", "generic_camera_info.yaml"))
+        self.declare_parameter("camera_info_path", os.path.join(get_package_share_directory("moveicu_interfaces"), "models", "generic_camera_calib.yaml"))
         cam_info_path = self.get_parameter("camera_info_path").get_parameter_value().string_value
 
         with open(cam_info_path, "r") as file_handle:

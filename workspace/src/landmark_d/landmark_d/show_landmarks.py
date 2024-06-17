@@ -12,7 +12,7 @@ from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 
 class ShowLandmarks(Node):
     def __init__(self):
-        super().__init__("face_detector")
+        super().__init__("show_landmarks")
 
         qos_profile = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -34,7 +34,7 @@ class ShowLandmarks(Node):
 
     @staticmethod
     def _get_square_box(box):
-        """Get a square box out of the given box, by expanding it."""
+        """Get a square box out of the >given box, by expanding it."""
         left_x, top_y, right_x, bottom_y = box
 
         box_width = right_x - left_x

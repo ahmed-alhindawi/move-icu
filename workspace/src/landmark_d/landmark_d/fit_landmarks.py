@@ -13,9 +13,11 @@ from landmark_d.ros_np_multiarray import to_numpy_f64
 from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 import transforms3d as t3d
 import rclpy
-from moveicu_interfaces.msg import StampedFacialLandmarksList
+from moveicu_interfaces.msg import StampedFacialLandmarksList, StampedBoundingBoxList
 from tf2_ros import TransformBroadcaster 
 from geometry_msgs.msg import TransformStamped
+import message_filters
+
 
 class FitLandmarks(Node):
 
@@ -62,7 +64,7 @@ class FitLandmarks(Node):
                     return True, msg_info[0]
 
     def __init__(self):
-        super().__init__('threed_landmarks')
+        super().__init__('fit_landmarks')
 
         _qos = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -70,8 +72,18 @@ class FitLandmarks(Node):
             depth=5
         )
 
-        self.subscriber_ = self.create_subscription(StampedFacialLandmarksList, "/landmarks", self.callback, qos_profile=_qos)
-        self.publisher_ = self.create_publisher(PoseStamped, '/head_pose', qos_profile=_qos)
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
+        subscribers = [
+            message_filters.Subscriber(self, StampedFacialLandmarksList, "/landmarks", qos_profile=qos_profile),
+            message_filters.Subscriber(self, StampedBoundingBoxList, "/faces", qos_profile=qos_profile),
+        ]
+        self._ts = message_filters.TimeSynchronizer(subscribers, 5)
+        self._ts.registerCallback(self.callback)
         self.tf_publisher = TransformBroadcaster(self)
 
         f68_fpath = os.path.join(ament_index_python.get_package_share_directory("moveicu_interfaces"), "models", "face_model_68.txt")
@@ -91,15 +103,68 @@ class FitLandmarks(Node):
             self.get_logger().error(f"Could not get camera info: {e}")
             self.destroy_node()
             return
+        
+    @staticmethod
+    def _get_square_box(box):
+        """Get a square box out of the given box, by expanding it."""
+        left_x, top_y, right_x, bottom_y = box
 
-    def callback(self, ldmks_msg):
+        box_width = right_x - left_x
+        box_height = bottom_y - top_y
+
+        # Check if box is already a square. If not, make it a square.
+        diff = box_height - box_width
+        delta = int(abs(diff) / 2)
+
+        if diff == 0:  # Already a square.
+            return box
+        elif diff > 0:  # Height > width, a slim box.
+            left_x -= delta
+            right_x += delta
+            if diff % 2 == 1:
+                right_x += 1
+        else:  # Width > height, a short box.
+            top_y -= delta
+            bottom_y += delta
+            if diff % 2 == 1:
+                bottom_y += 1
+
+        return [left_x, top_y, right_x, bottom_y]
+
+    @staticmethod
+    def _move_box(box, offset):
+        """Move the box to direction specified by vector offset"""
+        left_x = box.xmin + offset[0]
+        top_y = box.ymin + offset[1]
+        right_x = box.xmax + offset[0]
+        bottom_y = box.ymax + offset[1]
+
+        return [left_x, top_y, right_x, bottom_y]
+
+    def callback(self, ldmks_msg, bboxes_msg):
         camera_matrix = self.img_proc.intrinsicMatrix()
         dist_coeffs = self.img_proc.distortionCoeffs()
+        img_width = self.img_proc.width
+        img_height = self.img_proc.height
 
-        for i, data in enumerate(ldmks_msg.data):
-            landmarks = to_numpy_f64(data.landmarks)[..., :2]  # ignore the confidence values
+        for i, (ldmks_data, face_box) in enumerate(zip(ldmks_msg.data, bboxes_msg.data)):
+            ldmks = to_numpy_f64(ldmks_data.landmarks)[..., :2]  # ignore the confidence values
+            _diff_height_width = (face_box.ymax - face_box.ymin) - (
+                face_box.xmax - face_box.xmin
+            )
+            _offset_y = int(abs(_diff_height_width / 2))
+            _box_moved = self._move_box(face_box, [0, _offset_y])
+
+            # Make box square.
+            x1, y1, x2, y2 = self._get_square_box(_box_moved)
+            # clamp to image boundaries
+            x1, y1 = max(0, x1), max(0, y1)
+            x2, y2 = min(img_height, x2), min(img_width, y2)
+            ldmks[..., 0] = (ldmks[..., 0] * (x2 - x1)) + (x1 + ((x2 - x1) / 2.0))
+            ldmks[..., 1] = (ldmks[..., 1] * (y2 - y1)) + (y1 + ((y2 - y1) / 2.0))
+
             success, rodrigues_rotation, translation_vector, _ = cv2.solvePnPRansac(self.model_points,
-                                                                                    landmarks.reshape(len(self.model_points), 1, 2),
+                                                                                    ldmks.reshape(len(self.model_points), 1, 2),
                                                                                     cameraMatrix=camera_matrix,
                                                                                     distCoeffs=dist_coeffs, 
                                                                                     flags=cv2.SOLVEPNP_DLS)
@@ -119,7 +184,6 @@ class FitLandmarks(Node):
             m[:3, :3] = rotation_matrix
             m[3, 3] = 1
             rpy_rotation = np.array(t3d.euler.mat2euler(m))
-
 
             translation_vector = (translation_vector / 1000.0).flatten()
 

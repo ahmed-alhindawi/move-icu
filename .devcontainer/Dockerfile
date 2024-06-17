@@ -86,6 +86,7 @@ RUN sudo apt-get update -qq && sudo apt-get install -y \
   ros-${ROS_DISTRO}-geographic-msgs \
   ros-${ROS_DISTRO}-diagnostic-updater \
   ros-${ROS_DISTRO}-robot-localization \
+  ros-${ROS_DISTRO}-common-interfaces \
   && sudo rm -rf /var/lib/apt/lists/*
 
 RUN sudo rosdep init && \
@@ -114,7 +115,8 @@ RUN python3 -m venv $VIRTUAL_ENV --system-site-packages --symlinks
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 RUN pip3 install --upgrade pip
 COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+# RUN pip3 install -r requirements.txt
+RUN pip3 install umpy opencv-python timm torch torchvision torchaudio setuptools==58.0 albumentations --no-binary qudida,albumentations
 ENV PYTHONPATH=/home/$USERNAME/venv/lib/python3.10/site-packages:$PYTHONPATH
 
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model

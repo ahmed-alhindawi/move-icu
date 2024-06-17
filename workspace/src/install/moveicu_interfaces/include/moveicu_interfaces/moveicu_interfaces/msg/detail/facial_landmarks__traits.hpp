@@ -1,0 +1,1 @@
+/workspace/src/build/moveicu_interfaces/rosidl_generator_cpp/moveicu_interfaces/msg/detail/facial_landmarks__traits.hpp

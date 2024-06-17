@@ -47,7 +47,12 @@ class LandmarkExtractor(Node):
         self.get_logger().info(
             f"Found {len(modelpaths)} models for landmark extraction, Loading..."
         )
-        self.models = [self._load_network(path) for path in modelpaths]
+
+        self.models = []
+        for path in modelpaths:
+            self.get_logger().info(f"Loading: {path}")
+            self.models.append(self._load_network(path))
+            # self.models = [self._load_network(path) for path in modelpaths]
         self.get_logger().info("...Done")
 
         self.landmark_extractor_transform = albu.Compose(
