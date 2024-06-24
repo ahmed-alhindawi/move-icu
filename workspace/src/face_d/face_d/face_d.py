@@ -21,7 +21,7 @@ class FaceDetector(Node):
             depth=5
         )
 
-        self.subscriber_ = self.create_subscription(Image, "/camera", self.callback, qos_profile=qos_profile)
+        self.subscriber_ = self.create_subscription(Image, "/image_rect", self.callback, qos_profile=qos_profile)
         self.publisher_ = self.create_publisher(StampedBoundingBoxList, '/faces', qos_profile=qos_profile)
         path_to_model = os.path.join(get_package_share_directory("moveicu_interfaces"), "models", "s3fd_facedetector.ckpt")
         self.get_logger().info(f"Loading model from {path_to_model}")
@@ -30,28 +30,31 @@ class FaceDetector(Node):
         self._cvbridge = CvBridge()
 
     def callback(self, img_msg):
-        img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg, desired_encoding="bgr8")
-        img_small = cv2.resize(img, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
-        bbs = self._sfd.detect_from_image(img_small)
-        face_bbs, confidences = bbs[:, :4], bbs[:, 4]
-        face_bbs *= 4.0
+        try:
+            img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg)
+            img = img[:, :, :3]
+            img_small = cv2.resize(img, dsize=None, fx=0.25, fy=0.25, interpolation=cv2.INTER_NEAREST)
+            bbs = self._sfd.detect_from_image(img_small)
+            face_bbs, confidences = bbs[:, :4], bbs[:, 4]
+            face_bbs *= 4.0
 
-        boxes = []
-        for face_bb, conf in zip(face_bbs, confidences):
-            face_box = face_bb.cpu().tolist()
-            box = BoundingBox()
-            box.xmin = face_box[0]
-            box.ymin = face_box[1]
-            box.xmax = face_box[2]
-            box.ymax = face_box[3]
-            box.confidence = float(conf)
-            boxes.append(box)
+            boxes = []
+            for face_bb, conf in zip(face_bbs, confidences):
+                face_box = face_bb.cpu().tolist()
+                box = BoundingBox()
+                box.xmin = face_box[0]
+                box.ymin = face_box[1]
+                box.xmax = face_box[2]
+                box.ymax = face_box[3]
+                box.confidence = float(conf)
+                boxes.append(box)
 
-        msg = StampedBoundingBoxList()
-        msg.header = img_msg.header
-        msg.data = boxes
-        self.publisher_.publish(msg)
-
+            msg = StampedBoundingBoxList()
+            msg.header = img_msg.header
+            msg.data = boxes
+            self.publisher_.publish(msg)
+        except Exception as e:
+            self.get_logger().info(f"{e}")
 
 def main(args=None):
     rclpy.init(args=args)

@@ -179,7 +179,7 @@ class FitLandmarks(Node):
             # rotation_vector[0] += self.head_pitch
 
             rotation_matrix, _ = cv2.Rodrigues(rodrigues_rotation)
-            rotation_matrix = np.matmul(rotation_matrix, np.array([[0, 1, 0], [0, 0, -1], [-1, 0, 0]]))
+            # rotation_matrix = np.matmul(rotation_matrix, np.array([[0, 1, 0], [0, 0, -1], [-1, 0, 0]]))
             m = np.zeros((4, 4))
             m[:3, :3] = rotation_matrix
             m[3, 3] = 1
@@ -189,7 +189,7 @@ class FitLandmarks(Node):
 
             pose_msg = TransformStamped()
             pose_msg.header.stamp = ldmks_msg.header.stamp
-            pose_msg.header.frame_id = "camera"
+            pose_msg.header.frame_id = "zed_left_camera_optical_frame"
             pose_msg.child_frame_id = f"head_{i}"
             pose_msg.transform.translation.x = translation_vector[0]
             pose_msg.transform.translation.y = translation_vector[1]

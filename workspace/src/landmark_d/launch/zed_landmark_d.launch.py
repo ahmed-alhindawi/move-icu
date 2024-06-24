@@ -2,14 +2,19 @@ from launch import LaunchDescription
 from launch_ros.actions import Node
 
 def generate_launch_description():
-    image_rect_color_topic = "/zed/zed_node/rgb/image_rect_color"
     return LaunchDescription([
+        # zed_launch,
+        Node(
+            package='zed_wrapper',
+            namespace='face1',
+            executable='camera.launch.py'
+        ),
         Node(
             package='face_d',
             namespace='face1',
             executable='face_d',
             name='face_detector',
-            remappings=[("/image_rect", image_rect_color_topic),
+            remappings=[("/camera", "/zed/zed_node/rgb/image_rect_color"),
                         ("/faces", "/faces")]
         ),
         Node(
@@ -17,7 +22,7 @@ def generate_launch_description():
             namespace='face1',
             executable='landmark_d',
             name='landmark_detector',
-            remappings=[("/camera", image_rect_color_topic),
+            remappings=[("/camera", "/zed/zed_node/rgb/image_rect_color"),
                         ("/faces", "/faces")]
         ),
         Node(
@@ -25,7 +30,7 @@ def generate_launch_description():
             namespace='face1',
             executable='show_landmarks',
             name='show_landmarks',
-            remappings=[("/camera", image_rect_color_topic),
+            remappings=[("/camera", "/zed/zed_node/rgb/image_rect_color"),
                         ("/landmarks", "/landmarks"),
                         ("/faces", "/faces")]
         )

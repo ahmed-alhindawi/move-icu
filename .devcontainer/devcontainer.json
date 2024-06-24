@@ -11,12 +11,10 @@
 		"XAUTHORITY": "/root/.Xauthority"
 	},
 	"runArgs": [
-		"--userns=keep-id",
 		"--device", "nvidia.com/gpu=all",
 		"--privileged",
-		"--security-opt=label=disable",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
-		// "--volume=${localEnv:XAUTHORITY}:/root/.Xauthority"
+		"--volume=${localEnv:XAUTHORITY}:/root/.Xauthority"
 	],
 	"remoteUser": "root",
 	"containerUser": "root",
@@ -24,8 +22,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				"ms-iot.vscode-ros",
-				"charliermarsh.ruff",
+				// "ms-iot.vscode-ros",
+				// "charliermarsh.ruff",
 				"vscodevim.vim"
 			]
 		}

@@ -70,31 +70,35 @@ class LandmarkExtractor(Node):
         )
 
     def callback(self, img_msg, bboxes_msg):
-        img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg, desired_encoding="bgr8")
+        try:
+            img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg)
+            img = img[:, :, :3]
 
-        # pick the face with the biggest confidence
-        ldmks = self._get_landmarks(
-            img,
-            bboxes_msg.data,
-            landmark_extractors=self.models,
-            transform=self.landmark_extractor_transform,
-            device="cuda:0",
-        )
-        if ldmks is None:
-            return
+            # pick the face with the biggest confidence
+            ldmks = self._get_landmarks(
+                img,
+                bboxes_msg.data,
+                landmark_extractors=self.models,
+                transform=self.landmark_extractor_transform,
+                device="cuda:0",
+            )
+            if ldmks is None:
+                return
 
-        ldmks = ldmks.numpy()
-        ldmks_msgs = []
-        for i in range(len(bboxes_msg.data)):
-            ldmks_msg = FacialLandmarks()
-            ldmks_msg.landmarks = to_multiarray_f64(ldmks[i, ...])
-            ldmks_msgs.append(ldmks_msg)
+            ldmks = ldmks.numpy()
+            ldmks_msgs = []
+            for i in range(len(bboxes_msg.data)):
+                ldmks_msg = FacialLandmarks()
+                ldmks_msg.landmarks = to_multiarray_f64(ldmks[i, ...])
+                ldmks_msgs.append(ldmks_msg)
 
-        msg = StampedFacialLandmarksList()
-        msg.header = img_msg.header
-        msg.data = ldmks_msgs
+            msg = StampedFacialLandmarksList()
+            msg.header = img_msg.header
+            msg.data = ldmks_msgs
 
-        self.publisher_.publish(msg)
+            self.publisher_.publish(msg)
+        except Exception as e:
+            self.get_logger().info(f"{e}")
 
     @staticmethod
     def _load_jit_network(path):

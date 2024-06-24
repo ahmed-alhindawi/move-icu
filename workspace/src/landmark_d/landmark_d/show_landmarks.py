@@ -70,29 +70,33 @@ class ShowLandmarks(Node):
         return [left_x, top_y, right_x, bottom_y]
 
     def callback(self, img_msg, ldmks_msg, bboxes_msg):
-        img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg, desired_encoding="bgr8")
+        try:
+            img = self._cvbridge.imgmsg_to_cv2(img_msg=img_msg)
+            img = np.array(img[:, :, :3])
 
-        for ldmks_data, face_box in zip(ldmks_msg.data, bboxes_msg.data):
-            ldmks = to_numpy_f64(ldmks_data.landmarks)
-            _diff_height_width = (face_box.ymax - face_box.ymin) - (
-                face_box.xmax - face_box.xmin
-            )
-            _offset_y = int(abs(_diff_height_width / 2))
-            _box_moved = self._move_box(face_box, [0, _offset_y])
+            for ldmks_data, face_box in zip(ldmks_msg.data, bboxes_msg.data):
+                ldmks = to_numpy_f64(ldmks_data.landmarks)
+                _diff_height_width = (face_box.ymax - face_box.ymin) - (
+                    face_box.xmax - face_box.xmin
+                )
+                _offset_y = int(abs(_diff_height_width / 2))
+                _box_moved = self._move_box(face_box, [0, _offset_y])
 
-            # Make box square.
-            x1, y1, x2, y2 = self._get_square_box(_box_moved)
-            # clamp to image boundaries
-            x1, y1 = max(0, x1), max(0, y1)
-            x2, y2 = min(img.shape[1], x2), min(img.shape[0], y2)
-            ldmks[..., 0] = (ldmks[..., 0] * (x2 - x1)) + (x1 + ((x2 - x1) / 2.0))
-            ldmks[..., 1] = (ldmks[..., 1] * (y2 - y1)) + (y1 + ((y2 - y1) / 2.0))
-            img = self._draw_face(
-                ldmks, img, face_box, draw_confidence=True, confidence_radius=3
-            )
+                # Make box square.
+                x1, y1, x2, y2 = self._get_square_box(_box_moved)
+                # clamp to image boundaries
+                x1, y1 = max(0, x1), max(0, y1)
+                x2, y2 = min(img.shape[1], x2), min(img.shape[0], y2)
+                ldmks[..., 0] = (ldmks[..., 0] * (x2 - x1)) + (x1 + ((x2 - x1) / 2.0))
+                ldmks[..., 1] = (ldmks[..., 1] * (y2 - y1)) + (y1 + ((y2 - y1) / 2.0))
+                img = self._draw_face(
+                    ldmks, img, face_box, draw_confidence=True, confidence_radius=3
+                )
 
-        img_msg = self._cvbridge.cv2_to_imgmsg(img, encoding="bgr8")
-        self._publisher.publish(img_msg)
+            img_msg = self._cvbridge.cv2_to_imgmsg(img, encoding="bgr8")
+            self._publisher.publish(img_msg)
+        except Exception as e:
+            self.get_logger().info(f"{e}")
 
     @staticmethod
     def _draw_face(
