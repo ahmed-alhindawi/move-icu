@@ -1,1 +1,0 @@
-/workspace/src/build/moveicu_interfaces/rosidl_typesupport_introspection_c/moveicu_interfaces/msg/detail/stamped_bounding_box_list__rosidl_typesupport_introspection_c.h

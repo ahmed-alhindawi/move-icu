@@ -1,1 +1,0 @@
-/workspace/src/build/moveicu_interfaces/rosidl_typesupport_fastrtps_cpp/moveicu_interfaces/msg/detail/bounding_box__rosidl_typesupport_fastrtps_cpp.hpp

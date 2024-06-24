@@ -1,1 +1,0 @@
-/workspace/src/build/moveicu_interfaces/rosidl_generator_c/moveicu_interfaces/msg/detail/stamped_facial_landmarks_list__type_support.h

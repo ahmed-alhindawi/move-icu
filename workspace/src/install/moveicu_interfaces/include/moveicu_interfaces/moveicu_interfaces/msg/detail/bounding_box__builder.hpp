@@ -1,1 +1,0 @@
-/workspace/src/build/moveicu_interfaces/rosidl_generator_cpp/moveicu_interfaces/msg/detail/bounding_box__builder.hpp

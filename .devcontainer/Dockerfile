@@ -1,4 +1,4 @@
-FROM docker.io/nvidia/cuda:12.2.0-devel-ubuntu22.04
+FROM docker.io/nvidia/cuda:12.1.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 #############################

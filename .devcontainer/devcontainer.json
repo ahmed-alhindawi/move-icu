@@ -16,7 +16,7 @@
 		"--privileged",
 		"--security-opt=label=disable",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
-		"--volume=${localEnv:XAUTHORITY}:/root/.Xauthority"
+		// "--volume=${localEnv:XAUTHORITY}:/root/.Xauthority"
 	],
 	"remoteUser": "root",
 	"containerUser": "root",
