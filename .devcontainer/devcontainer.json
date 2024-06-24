@@ -8,18 +8,18 @@
 	"workspaceFolder": "/workspace",
 	"containerEnv": {
 		"DISPLAY": ":0",
-		"XAUTHORITY": "/home/ros/.Xauthority"
+		"XAUTHORITY": "/root/.Xauthority"
 	},
 	"runArgs": [
 		"--userns=keep-id",
 		"--device", "nvidia.com/gpu=all",
-		"--device", "/dev/video0",
+		"--privileged",
 		"--security-opt=label=disable",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
-		"--volume=${localEnv:XAUTHORITY}:/home/ros/.Xauthority"
+		"--volume=${localEnv:XAUTHORITY}:/root/.Xauthority"
 	],
-	// "remoteUser": "ros",
-	"containerUser": "ros",
+	"remoteUser": "root",
+	"containerUser": "root",
 	"postStartCommand": "git config --global --add safe.directory /workspaces/${localWorkspaceFolderBasename}",
 	"customizations": {
 		"vscode": {

@@ -1,5 +1,6 @@
 FROM docker.io/nvidia/cuda:12.2.0-devel-ubuntu22.04
 
+ENV DEBIAN_FRONTEND=noninteractive
 #############################
 # Install necessary libraries
 #############################
@@ -32,11 +33,9 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
   curl \
   && rm -rf /var/lib/apt/lists/*
 
-ARG USERNAME=ros
+ARG USERNAME=root
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-
-ENV DEBIAN_FRONTEND=noninteractive
 
 ENV QT_X11_NO_MITSHM 1
 ENV NVIDIA_VISIBLE_DEVICES all
@@ -44,6 +43,7 @@ ENV NVIDIA_DRIVER_CAPABILITIES \
     ${NVIDIA_DRIVER_CAPABILITIES:+$NVIDIA_DRIVER_CAPABILITIES,}compute,video,utility,graphics
 
 
+ENV PIP_ROOT_USER_ACTION=ignore
 ENV ROS_DISTRO=humble
 ENV AMENT_PREFIX_PATH=/opt/ros/${ROS_DISTRO}
 ENV COLCON_PREFIX_PATH=/opt/ros/${ROS_DISTRO}
@@ -55,28 +55,30 @@ ENV ROS_VERSION=2
 
 RUN echo "Europe/London" > /etc/localtime ; echo "CUDA Version 12.2.0" > /usr/local/cuda/version.txt
 
-###################
-# CREATE LOCAL USER
-###################
-RUN groupadd --gid $USER_GID $USERNAME \
-  && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME \
-  && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
-  && chmod 0440 /etc/sudoers.d/$USERNAME
+################
+# StereoLabs ZED
+################
 
-USER $USERNAME
-WORKDIR /home/$USERNAME
+WORKDIR /tmp/
+RUN wget -q -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.1/cu121/ubuntu22 && \
+    chmod +x ZED_SDK_Linux.run ; ./ZED_SDK_Linux.run silent skip_cuda skip_python && \
+    ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so && \
+    rm ZED_SDK_Linux.run && \
+    rm -rf /var/lib/apt/lists/*
 
+# Make some tools happy
+RUN mkdir -p /root/Documents/ZED/
 
 #####
 # ROS 
-#####
+# #####
 
-RUN sudo apt-get update -q && sudo add-apt-repository universe \
-  && sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
-  && sudo echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null \
-  && sudo rm -rf /var/lib/apt/lists/*
+RUN apt-get update -q && add-apt-repository universe \
+  && curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg \
+  && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null \
+  && rm -rf /var/lib/apt/lists/*
 
-RUN sudo apt-get update -qq && sudo apt-get install -y \
+RUN apt-get update -qq && apt-get install -y \
   ros-dev-tools \
   ros-${ROS_DISTRO}-desktop \
   ros-${ROS_DISTRO}-xacro \
@@ -87,37 +89,16 @@ RUN sudo apt-get update -qq && sudo apt-get install -y \
   ros-${ROS_DISTRO}-diagnostic-updater \
   ros-${ROS_DISTRO}-robot-localization \
   ros-${ROS_DISTRO}-common-interfaces \
-  && sudo rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/*
 
-RUN sudo rosdep init && \
+RUN rosdep init && \
   rosdep update --rosdistro $ROS_DISTRO
 
-
-################
-# StereoLabs ZED
-################
-
-WORKDIR /tmp/
-RUN wget -q -O ZED_SDK_Linux.run https://download.stereolabs.com/zedsdk/4.1/cu121/ubuntu22 && \
-    sudo chmod +x ZED_SDK_Linux.run ; sudo ./ZED_SDK_Linux.run silent skip_cuda skip_python && \
-    sudo ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so && \
-    rm ZED_SDK_Linux.run && \
-    sudo rm -rf /var/lib/apt/lists/*
-
-# Make some tools happy
-RUN mkdir -p /home/$USERNAME/Documents/ZED/
-
-##########################
-# Install pip requirements
-##########################
-ENV VIRTUAL_ENV=/home/$USERNAME/venv
-RUN python3 -m venv $VIRTUAL_ENV --system-site-packages --symlinks
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+# ##########################
+# # Install pip requirements
+# ##########################
 RUN pip3 install --upgrade pip
-COPY requirements.txt .
-# RUN pip3 install -r requirements.txt
-RUN pip3 install umpy opencv-python timm torch torchvision torchaudio setuptools==58.0 albumentations --no-binary qudida,albumentations
-ENV PYTHONPATH=/home/$USERNAME/venv/lib/python3.10/site-packages:$PYTHONPATH
+RUN pip3 install torch torchvision timm opencv-python transforms3d setuptools==58.2.0 albumentations --no-binary albumentations,qudida
 
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
 # COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
