@@ -22,8 +22,8 @@
 	"customizations": {
 		"vscode": {
 			"extensions": [
-				// "ms-iot.vscode-ros",
-				// "charliermarsh.ruff",
+				"ms-iot.vscode-ros",
+				"charliermarsh.ruff",
 				"vscodevim.vim"
 			]
 		}
