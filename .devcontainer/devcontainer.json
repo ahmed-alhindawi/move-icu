@@ -11,6 +11,7 @@
 		"XAUTHORITY": "/root/.Xauthority"
 	},
 	"runArgs": [
+		"--rm",
 		"--device", "nvidia.com/gpu=all",
 		"--privileged",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
@@ -27,5 +28,6 @@
 				"vscodevim.vim"
 			]
 		}
-	}
+	},
+	"overrideCommand": false
 }

@@ -92,8 +92,7 @@ RUN apt-get update -q && add-apt-repository universe && \
     ros-${ROS_DISTRO}-common-interfaces && \
     rm -rf /var/lib/apt/lists/*
 
-RUN rosdep init && \
-    rosdep update --rosdistro $ROS_DISTRO
+RUN rosdep init && rosdep update --rosdistro $ROS_DISTRO
 
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
 # COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache
@@ -107,3 +106,8 @@ RUN rosdep init && \
 #   && apt-get update && apt-get install -q -y --no-install-recommends \
 #     ros-iron-gazebo* \
 #   && rm -rf /var/lib/apt/lists/*
+
+#...
+# Allow container to stop. See: https://github.com/microsoft/vscode-remote-release/issues/3512#issuecomment-1267053890
+# NOTE: Long interval is necessary so container is not closed during vscode initialization
+CMD while sleep 120 && ps aux | egrep 'vscode.*[b]ootstrap-fork.*extensionHost.*' > /dev/null; do :; done

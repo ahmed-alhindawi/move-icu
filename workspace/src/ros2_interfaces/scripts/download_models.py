@@ -56,8 +56,18 @@ def download_s3fd_model():
     request_if_not_exist(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../models/s3fd_facedetector.ckpt"), 
                          "https://liveuclac-my.sharepoint.com/:u:/g/personal/rmhaa84_ucl_ac_uk/EdN3iC9BVqFMrSyvhEoIb1IBRwMdYx3txi1bg7wRyQ9gVA?e=65ywZo&download=1", 
                          "3b5a9888bf0beb93c177db5a18375a6c")
-    
+
+
+def download_unipose_models()
+    request_if_not_exist(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../models/unipose_coco.ckpt"), 
+                         "https://liveuclac-my.sharepoint.com/:u:/g/personal/rmhaa84_ucl_ac_uk/EYrUXgO56rpIlSGouWJGEJEBC52wd7fcS1eOapmGwzETSg?e=SN6keG&download=1",
+                         "6d18b09a683cf71ad52daeda7f0da8d0")
+
+    request_if_not_exist(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../models/unipose_mpii.ckpt"), 
+                         "https://liveuclac-my.sharepoint.com/:u:/g/personal/rmhaa84_ucl_ac_uk/EYrUXgO56rpIlSGouWJGEJEBC52wd7fcS1eOapmGwzETSg?e=SN6keG&download=1",
+                         "6d18b09a683cf71ad52daeda7f0da8d0")
 
 download_landmark_models()
 download_landmark_jit_models()
 download_s3fd_model()
+download_unipose_models()
