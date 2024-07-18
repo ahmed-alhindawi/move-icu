@@ -10,10 +10,11 @@
 		"DISPLAY": ":0",
 		"XAUTHORITY": "/root/.Xauthority"
 	},
+	"privileged": true,
 	"runArgs": [
 		"--rm",
+		"--shm-size=1g",
 		"--device", "nvidia.com/gpu=all",
-		"--privileged",
 		"--volume=/tmp/.X11-unix:/tmp/.X11-unix",
 		"--volume=${localEnv:XAUTHORITY}:/root/.Xauthority"
 	],

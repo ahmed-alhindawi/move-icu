@@ -58,7 +58,7 @@ def download_s3fd_model():
                          "3b5a9888bf0beb93c177db5a18375a6c")
 
 
-def download_unipose_models()
+def download_unipose_models():
     request_if_not_exist(os.path.join(os.path.dirname(os.path.realpath(__file__)), "../models/unipose_coco.ckpt"), 
                          "https://liveuclac-my.sharepoint.com/:u:/g/personal/rmhaa84_ucl_ac_uk/EYrUXgO56rpIlSGouWJGEJEBC52wd7fcS1eOapmGwzETSg?e=SN6keG&download=1",
                          "6d18b09a683cf71ad52daeda7f0da8d0")
