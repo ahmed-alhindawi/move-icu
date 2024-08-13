@@ -16,6 +16,7 @@ from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
 from matplotlib import transforms
 from torchvision.ops import nms
+import io
 
 
 def text_encoding(instance_names, keypoints_names, model, device):
@@ -206,18 +207,26 @@ def plot_on_image(image_pil, tgt, keypoint_skeleton,keypoint_text_prompt,output_
                 c_kpt = color_kpt[i]
                 plt.plot(x[i], y[i], 'o', markersize=4, markerfacecolor=c_kpt, markeredgecolor='k', markeredgewidth=0.5)
     ax.set_axis_off()
+
+
     savename = os.path.join(output_dir, "pred.jpg")
     print("savename: {}".format(savename))
     os.makedirs(os.path.dirname(savename), exist_ok=True)
     plt.savefig(savename, dpi=dpi)
-    plt.close()
+
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', dpi=dpi)
+    plt.close(fig)
+    buf.seek(0)
+    image_with_keypoints = Image.open(buf)
+
+    return image_with_keypoints
 
 
 
-
-def load_image(image_path):
+def load_image(image_pil):
     # load image
-    image_pil = Image.open(image_path).convert("RGB")  # load image
+    #image_pil = Image.open(image_path).convert("RGB")  # load image
 
     transform = T.Compose(
         [
@@ -290,7 +299,10 @@ def get_unipose_output(model, image, instance_text_prompt,keypoint_text_prompt, 
 
     return filtered_boxes,filtered_keypoints
 
-def run_unipose_inference(config_file, checkpoint_path, image_path, instance_text_prompt, output_dir,
+
+import os
+
+def run_unipose_inference(config_file, checkpoint_path, image_pil, instance_text_prompt, output_dir,
                           keypoint_text_example=None, box_threshold=0.1, iou_threshold=0.9, cpu_only=False):
     """
     Run UniPose inference on a given image.
@@ -298,7 +310,7 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
     Args:
         config_file (str): Path to the config file.
         checkpoint_path (str): Path to the checkpoint file.
-        image_path (str): Path to the input image file.
+        image_pil (PIL.Image): PIL image to process.
         instance_text_prompt (str): Instance text prompt (e.g., "person").
         output_dir (str): Directory to save the output.
         keypoint_text_example (str, optional): Keypoint text prompt. Defaults to None.
@@ -307,7 +319,7 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
         cpu_only (bool, optional): If True, run on CPU only. Defaults to False.
 
     Returns:
-        None
+        PIL.Image: Processed image with pose annotations.
     """
 
     # Set the keypoint and skeleton information based on instance or keypoint text prompt
@@ -327,14 +339,10 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
-    # Load image
-    image_pil, image = load_image(image_path)
+    image_pil, image = load_image(image_pil)
 
     # Load model
     model = load_model(config_file, checkpoint_path, cpu_only=cpu_only)
-
-    # Save the raw image
-    image_pil.save(os.path.join(output_dir, "raw_image.jpg"))
 
     # Run the model to get bounding boxes and keypoints
     boxes_filt, keypoints_filt = get_unipose_output(
@@ -349,26 +357,103 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
         "size": [size[1], size[0]]
     }
 
-    # Plot keypoints on the image and save the output
-    plot_on_image(image_pil, pred_dict, keypoint_skeleton, keypoint_text_prompt, output_dir)
+    # Plot keypoints on the image
+    processed_image = plot_on_image(image_pil, pred_dict, keypoint_skeleton, keypoint_text_prompt, output_dir)
 
+    return processed_image
+
+import cv2
+from PIL import Image
+import numpy as np
+
+
+def process_video_with_unipose(config_file, checkpoint_path, video_path, instance_text_prompt, output_video_path,
+                               keypoint_text_example=None, box_threshold=0.1, iou_threshold=0.9, cpu_only=False):
+    """
+    Process a video, applying UniPose inference on each frame, and save the output video.
+
+    Args:
+        config_file (str): Path to the config file.
+        checkpoint_path (str): Path to the checkpoint file.
+        video_path (str): Path to the input video file.
+        instance_text_prompt (str): Instance text prompt (e.g., "person").
+        output_video_path (str): Path to save the output video.
+        keypoint_text_example (str, optional): Keypoint text prompt. Defaults to None.
+        box_threshold (float, optional): Box threshold. Defaults to 0.1.
+        iou_threshold (float, optional): IOU threshold. Defaults to 0.9.
+        cpu_only (bool, optional): If True, run on CPU only. Defaults to False.
+
+    Returns:
+        None
+    """
+
+    # Open the video file
+    cap = cv2.VideoCapture(video_path)
+    if not cap.isOpened():
+        print(f"Error: Could not open video file {video_path}")
+        return
+
+    # Get video properties
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    fps = int(cap.get(cv2.CAP_PROP_FPS))
+
+    # Define the codec and create VideoWriter object
+    out = cv2.VideoWriter(output_video_path, cv2.VideoWriter_fourcc(*'mp4v'), fps, (frame_width, frame_height))
+
+    # Process each frame
+    frame_count = 0
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            break
+        
+        # Convert the frame to PIL image format
+        image_pil = Image.fromarray(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
+
+        # Run UniPose inference on the frame
+        processed_image_pil = run_unipose_inference(
+            config_file=config_file,
+            checkpoint_path=checkpoint_path,
+            image_pil=image_pil,
+            instance_text_prompt=instance_text_prompt,
+            output_dir="/tmp",  # Temporary directory since we're not saving individual frames
+            keypoint_text_example=keypoint_text_example,
+            box_threshold=box_threshold,
+            iou_threshold=iou_threshold,
+            cpu_only=cpu_only
+        )
+
+        # Convert the processed PIL image back to OpenCV format
+        processed_frame = cv2.cvtColor(np.array(processed_image_pil), cv2.COLOR_RGB2BGR)
+
+        # Write the processed frame to the output video
+        out.write(processed_frame)
+        
+        frame_count += 1
+        print(f"Processed frame {frame_count}")
+
+    # Release resources
+    cap.release()
+    out.release()
+    cv2.destroyAllWindows()
+    print(f"Video saved as '{output_video_path}'")
 
 # Example usage
 if __name__ == "__main__":
     config_file = "/workspace/src/unipose_d/unipose_d/config_model/UniPose_SwinT.py"  # Path to config file
     checkpoint_path = "/workspace/src/unipose_d/unipose_d/config_model/unipose_swint.pth"  # Path to checkpoint file
-    image_path = "/workspace/src/unipose_d/unipose_d/EP_walk.png"  # Path to the image file
+    video_path = "/workspace/src/unipose_d/unipose_d/walking.mp4"  # Path to input video
+    output_video_path = "/workspace/src/unipose_d/unipose_d/walking_pred.mp4"  # Path to save output video
     instance_text_prompt = "person"  # Instance text prompt
     keypoint_text_example = "person"  # Keypoint text prompt (optional)
-    output_dir = "/workspace/src/unipose_d/unipose_d"  # Output directory
 
-    # Call the function
-    run_unipose_inference(
+    process_video_with_unipose(
         config_file=config_file,
         checkpoint_path=checkpoint_path,
-        image_path=image_path,
+        video_path=video_path,
         instance_text_prompt=instance_text_prompt,
-        output_dir=output_dir,
+        output_video_path=output_video_path,
         keypoint_text_example=keypoint_text_example,
         box_threshold=0.1,
         iou_threshold=0.9,
