@@ -1,3 +1,26 @@
+# import sys
+# sys.path.insert(1, '.')
+
+# import argparse
+# import os
+# import sys
+# import numpy as np
+# import torch
+# from PIL import Image, ImageDraw, ImageFont
+# import clip
+# #import transforms as T
+# from models import build_model
+# from src.unipose.unipose.predefined_keypoints import *
+# from util import box_ops
+# from util.config import Config
+# from util.utils import clean_state_dict
+# import matplotlib.pyplot as plt
+# from matplotlib.collections import PatchCollection
+# from matplotlib.patches import Polygon
+# #from matplotlib import transforms
+# from torchvision.ops import nms
+# import torchvision.transforms as T
+
 import sys
 sys.path.insert(1, '.')
 
@@ -20,7 +43,6 @@ from matplotlib.patches import Polygon
 #from matplotlib import transforms
 from torchvision.ops import nms
 import torchvision.transforms as T
-
 
 def text_encoding(instance_names, keypoints_names, model, device):
 
@@ -49,159 +71,236 @@ def text_encoding(instance_names, keypoints_names, model, device):
 
 
 
-def plot_on_image(image_pil, tgt, keypoint_skeleton,keypoint_text_prompt,output_dir):
+# def plot_on_image(image_pil, tgt, keypoint_skeleton,keypoint_text_prompt,output_dir):
+#     num_kpts = len(keypoint_text_prompt)
+#     H, W = tgt["size"]
+#     fig = plt.figure(frameon=False)
+#     dpi = plt.gcf().dpi
+#     fig.set_size_inches(W / dpi, H / dpi)
+#     plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+#     ax = plt.gca()
+#     ax.imshow(image_pil, aspect='equal')
+#     ax = plt.gca()
+#     ax.set_xlim(0, W)
+#     ax.set_ylim(H, 0)
+#     ax.set_aspect('equal')
+#     color_kpt = [[0.00, 0.00, 0.00],
+#                  [1.00, 1.00, 1.00],
+#                  [1.00, 0.00, 0.00],
+#                  [1.00, 1, 00., 0.00],
+#                  [0.50, 0.16, 0.16],
+#                  [0.00, 0.00, 1.00],
+#                  [0.69, 0.88, 0.90],
+#                  [0.00, 1.00, 0.00],
+#                  [0.63, 0.13, 0.94],
+#                  [0.82, 0.71, 0.55],
+#                  [1.00, 0.38, 0.00],
+#                  [0.53, 0.15, 0.34],
+#                  [1.00, 0.39, 0.28],
+#                  [1.00, 0.00, 1.00],
+#                  [0.04, 0.09, 0.27],
+#                  [0.20, 0.63, 0.79],
+#                  [0.94, 0.90, 0.55],
+#                  [0.33, 0.42, 0.18],
+#                  [0.53, 0.81, 0.92],
+#                  [0.71, 0.49, 0.86],
+#                  [0.25, 0.88, 0.82],
+#                  [0.5, 0.0, 0.0],
+#                  [0.0, 0.3, 0.3],
+#                  [1.0, 0.85, 0.73],
+#                  [0.29, 0.0, 0.51],
+#                  [0.7, 0.5, 0.35],
+#                  [0.44, 0.5, 0.56],
+#                  [0.25, 0.41, 0.88],
+#                  [0.0, 0.5, 0.0],
+#                  [0.56, 0.27, 0.52],
+#                  [1.0, 0.84, 0.0],
+#                  [1.0, 0.5, 0.31],
+#                  [0.85, 0.57, 0.94],
+#                  [0.00, 0.00, 0.00],
+#                  [1.00, 1.00, 1.00],
+#                  [1.00, 0.00, 0.00],
+#                  [1.00, 1, 00., 0.00],
+#                  [0.50, 0.16, 0.16],
+#                  [0.00, 0.00, 1.00],
+#                  [0.69, 0.88, 0.90],
+#                  [0.00, 1.00, 0.00],
+#                  [0.63, 0.13, 0.94],
+#                  [0.82, 0.71, 0.55],
+#                  [1.00, 0.38, 0.00],
+#                  [0.53, 0.15, 0.34],
+#                  [1.00, 0.39, 0.28],
+#                  [1.00, 0.00, 1.00],
+#                  [0.04, 0.09, 0.27],
+#                  [0.20, 0.63, 0.79],
+#                  [0.94, 0.90, 0.55],
+#                  [0.33, 0.42, 0.18],
+#                  [0.53, 0.81, 0.92],
+#                  [0.71, 0.49, 0.86],
+#                  [0.25, 0.88, 0.82],
+#                  [0.5, 0.0, 0.0],
+#                  [0.0, 0.3, 0.3],
+#                  [1.0, 0.85, 0.73],
+#                  [0.29, 0.0, 0.51],
+#                  [0.7, 0.5, 0.35],
+#                  [0.44, 0.5, 0.56],
+#                  [0.25, 0.41, 0.88],
+#                  [0.0, 0.5, 0.0],
+#                  [0.56, 0.27, 0.52],
+#                  [1.0, 0.84, 0.0],
+#                  [1.0, 0.5, 0.31],
+#                  [0.85, 0.57, 0.94],
+#                  [0.00, 0.00, 0.00],
+#                  [1.00, 1.00, 1.00],
+#                  [1.00, 0.00, 0.00],
+#                  [1.00, 1, 00., 0.00],
+#                  [0.50, 0.16, 0.16],
+#                  [0.00, 0.00, 1.00],
+#                  [0.69, 0.88, 0.90],
+#                  [0.00, 1.00, 0.00],
+#                  [0.63, 0.13, 0.94],
+#                  [0.82, 0.71, 0.55],
+#                  [1.00, 0.38, 0.00],
+#                  [0.53, 0.15, 0.34],
+#                  [1.00, 0.39, 0.28],
+#                  [1.00, 0.00, 1.00],
+#                  [0.04, 0.09, 0.27],
+#                  [0.20, 0.63, 0.79],
+#                  [0.94, 0.90, 0.55],
+#                  [0.33, 0.42, 0.18],
+#                  [0.53, 0.81, 0.92],
+#                  [0.71, 0.49, 0.86],
+#                  [0.25, 0.88, 0.82],
+#                  [0.5, 0.0, 0.0],
+#                  [0.0, 0.3, 0.3],
+#                  [1.0, 0.85, 0.73],
+#                  [0.29, 0.0, 0.51],
+#                  [0.7, 0.5, 0.35],
+#                  [0.44, 0.5, 0.56],
+#                  [0.25, 0.41, 0.88],
+#                  [0.0, 0.5, 0.0],
+#                  [0.56, 0.27, 0.52],
+#                  [1.0, 0.84, 0.0],
+#                  [1.0, 0.5, 0.31],
+#                  [0.85, 0.57, 0.94]]
+#     color = []
+#     color_box = [0.53, 0.81, 0.92]
+#     polygons = []
+#     boxes = []
+#     for box in tgt['boxes'].cpu():
+#         unnormbbox = box * torch.Tensor([W, H, W, H])
+#         unnormbbox[:2] -= unnormbbox[2:] / 2
+#         [bbox_x, bbox_y, bbox_w, bbox_h] = unnormbbox.tolist()
+#         boxes.append([bbox_x, bbox_y, bbox_w, bbox_h])
+#         poly = [[bbox_x, bbox_y], [bbox_x, bbox_y + bbox_h], [bbox_x + bbox_w, bbox_y + bbox_h],
+#                 [bbox_x + bbox_w, bbox_y]]
+#         np_poly = np.array(poly).reshape((4, 2))
+#         polygons.append(Polygon(np_poly))
+#         color.append(color_box)
+
+#     p = PatchCollection(polygons, facecolor=color, linewidths=0, alpha=0.1)
+#     ax.add_collection(p)
+#     p = PatchCollection(polygons, facecolor='none', linestyle="--", edgecolors=color, linewidths=1.5)
+#     ax.add_collection(p)
+
+#     if 'keypoints' in tgt:
+
+#         sks = np.array(keypoint_skeleton)
+#         #print(sks)
+#         # #import pdb;pdb.set_trace()
+#         # if sks !=[0,0]:
+#         #     print(1)
+#         if sks.min()==1:
+#             #print(2)
+#             sks = sks - 1
+
+
+#         for idx, ann in enumerate(tgt['keypoints']):
+#             kp = np.array(ann.cpu())
+#             Z = kp[:num_kpts*2] * np.array([W, H] * num_kpts)
+#             x = Z[0::2]
+#             y = Z[1::2]
+#             if len(color) > 0:
+#                 c = color[idx % len(color)]
+#             else:
+#                 c = (np.random.random((1, 3)) * 0.6 + 0.4).tolist()[0]
+
+#             for sk in sks:
+#                 plt.plot(x[sk], y[sk], linewidth=1, color=c)
+
+#             for i in range(num_kpts):
+#                 c_kpt = color_kpt[i]
+#                 plt.plot(x[i], y[i], 'o', markersize=4, markerfacecolor=c_kpt, markeredgecolor='k', markeredgewidth=0.5)
+#     ax.set_axis_off()
+#     savename = os.path.join(output_dir, "pred.jpg")
+#     print("savename: {}".format(savename))
+#     os.makedirs(os.path.dirname(savename), exist_ok=True)
+#     plt.savefig(savename, dpi=dpi)
+#     plt.close()
+
+
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+from matplotlib.collections import PatchCollection
+import torch
+import os
+
+def plot_on_image(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
     num_kpts = len(keypoint_text_prompt)
     H, W = tgt["size"]
+
+    # Create a matplotlib figure
     fig = plt.figure(frameon=False)
     dpi = plt.gcf().dpi
     fig.set_size_inches(W / dpi, H / dpi)
     plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
     ax = plt.gca()
     ax.imshow(image_pil, aspect='equal')
-    ax = plt.gca()
     ax.set_xlim(0, W)
     ax.set_ylim(H, 0)
     ax.set_aspect('equal')
-    color_kpt = [[0.00, 0.00, 0.00],
-                 [1.00, 1.00, 1.00],
-                 [1.00, 0.00, 0.00],
-                 [1.00, 1, 00., 0.00],
-                 [0.50, 0.16, 0.16],
-                 [0.00, 0.00, 1.00],
-                 [0.69, 0.88, 0.90],
-                 [0.00, 1.00, 0.00],
-                 [0.63, 0.13, 0.94],
-                 [0.82, 0.71, 0.55],
-                 [1.00, 0.38, 0.00],
-                 [0.53, 0.15, 0.34],
-                 [1.00, 0.39, 0.28],
-                 [1.00, 0.00, 1.00],
-                 [0.04, 0.09, 0.27],
-                 [0.20, 0.63, 0.79],
-                 [0.94, 0.90, 0.55],
-                 [0.33, 0.42, 0.18],
-                 [0.53, 0.81, 0.92],
-                 [0.71, 0.49, 0.86],
-                 [0.25, 0.88, 0.82],
-                 [0.5, 0.0, 0.0],
-                 [0.0, 0.3, 0.3],
-                 [1.0, 0.85, 0.73],
-                 [0.29, 0.0, 0.51],
-                 [0.7, 0.5, 0.35],
-                 [0.44, 0.5, 0.56],
-                 [0.25, 0.41, 0.88],
-                 [0.0, 0.5, 0.0],
-                 [0.56, 0.27, 0.52],
-                 [1.0, 0.84, 0.0],
-                 [1.0, 0.5, 0.31],
-                 [0.85, 0.57, 0.94],
-                 [0.00, 0.00, 0.00],
-                 [1.00, 1.00, 1.00],
-                 [1.00, 0.00, 0.00],
-                 [1.00, 1, 00., 0.00],
-                 [0.50, 0.16, 0.16],
-                 [0.00, 0.00, 1.00],
-                 [0.69, 0.88, 0.90],
-                 [0.00, 1.00, 0.00],
-                 [0.63, 0.13, 0.94],
-                 [0.82, 0.71, 0.55],
-                 [1.00, 0.38, 0.00],
-                 [0.53, 0.15, 0.34],
-                 [1.00, 0.39, 0.28],
-                 [1.00, 0.00, 1.00],
-                 [0.04, 0.09, 0.27],
-                 [0.20, 0.63, 0.79],
-                 [0.94, 0.90, 0.55],
-                 [0.33, 0.42, 0.18],
-                 [0.53, 0.81, 0.92],
-                 [0.71, 0.49, 0.86],
-                 [0.25, 0.88, 0.82],
-                 [0.5, 0.0, 0.0],
-                 [0.0, 0.3, 0.3],
-                 [1.0, 0.85, 0.73],
-                 [0.29, 0.0, 0.51],
-                 [0.7, 0.5, 0.35],
-                 [0.44, 0.5, 0.56],
-                 [0.25, 0.41, 0.88],
-                 [0.0, 0.5, 0.0],
-                 [0.56, 0.27, 0.52],
-                 [1.0, 0.84, 0.0],
-                 [1.0, 0.5, 0.31],
-                 [0.85, 0.57, 0.94],
-                 [0.00, 0.00, 0.00],
-                 [1.00, 1.00, 1.00],
-                 [1.00, 0.00, 0.00],
-                 [1.00, 1, 00., 0.00],
-                 [0.50, 0.16, 0.16],
-                 [0.00, 0.00, 1.00],
-                 [0.69, 0.88, 0.90],
-                 [0.00, 1.00, 0.00],
-                 [0.63, 0.13, 0.94],
-                 [0.82, 0.71, 0.55],
-                 [1.00, 0.38, 0.00],
-                 [0.53, 0.15, 0.34],
-                 [1.00, 0.39, 0.28],
-                 [1.00, 0.00, 1.00],
-                 [0.04, 0.09, 0.27],
-                 [0.20, 0.63, 0.79],
-                 [0.94, 0.90, 0.55],
-                 [0.33, 0.42, 0.18],
-                 [0.53, 0.81, 0.92],
-                 [0.71, 0.49, 0.86],
-                 [0.25, 0.88, 0.82],
-                 [0.5, 0.0, 0.0],
-                 [0.0, 0.3, 0.3],
-                 [1.0, 0.85, 0.73],
-                 [0.29, 0.0, 0.51],
-                 [0.7, 0.5, 0.35],
-                 [0.44, 0.5, 0.56],
-                 [0.25, 0.41, 0.88],
-                 [0.0, 0.5, 0.0],
-                 [0.56, 0.27, 0.52],
-                 [1.0, 0.84, 0.0],
-                 [1.0, 0.5, 0.31],
-                 [0.85, 0.57, 0.94]]
-    color = []
+
+    color_kpt = [
+        [0.00, 0.00, 0.00], [1.00, 1.00, 1.00], [1.00, 0.00, 0.00],
+        [1.00, 1.00, 0.00], [0.50, 0.16, 0.16], [0.00, 0.00, 1.00],
+        [0.69, 0.88, 0.90], [0.00, 1.00, 0.00], [0.63, 0.13, 0.94],
+        [0.82, 0.71, 0.55], [1.00, 0.38, 0.00], [0.53, 0.15, 0.34],
+        [1.00, 0.39, 0.28], [1.00, 0.00, 1.00], [0.04, 0.09, 0.27],
+        [0.20, 0.63, 0.79], [0.94, 0.90, 0.55], [0.33, 0.42, 0.18],
+        [0.53, 0.81, 0.92], [0.71, 0.49, 0.86], [0.25, 0.88, 0.82]
+    ]
     color_box = [0.53, 0.81, 0.92]
     polygons = []
     boxes = []
+    
     for box in tgt['boxes'].cpu():
         unnormbbox = box * torch.Tensor([W, H, W, H])
         unnormbbox[:2] -= unnormbbox[2:] / 2
         [bbox_x, bbox_y, bbox_w, bbox_h] = unnormbbox.tolist()
         boxes.append([bbox_x, bbox_y, bbox_w, bbox_h])
-        poly = [[bbox_x, bbox_y], [bbox_x, bbox_y + bbox_h], [bbox_x + bbox_w, bbox_y + bbox_h],
-                [bbox_x + bbox_w, bbox_y]]
+        poly = [[bbox_x, bbox_y], [bbox_x, bbox_y + bbox_h], 
+                [bbox_x + bbox_w, bbox_y + bbox_h], [bbox_x + bbox_w, bbox_y]]
         np_poly = np.array(poly).reshape((4, 2))
         polygons.append(Polygon(np_poly))
-        color.append(color_box)
-
-    p = PatchCollection(polygons, facecolor=color, linewidths=0, alpha=0.1)
+    
+    p = PatchCollection(polygons, facecolor=color_box, linewidths=0, alpha=0.1)
     ax.add_collection(p)
-    p = PatchCollection(polygons, facecolor='none', linestyle="--", edgecolors=color, linewidths=1.5)
+    p = PatchCollection(polygons, facecolor='none', linestyle="--", edgecolors=color_box, linewidths=1.5)
     ax.add_collection(p)
 
     if 'keypoints' in tgt:
-
         sks = np.array(keypoint_skeleton)
-        #print(sks)
-        # #import pdb;pdb.set_trace()
-        # if sks !=[0,0]:
-        #     print(1)
-        if sks.min()==1:
-            #print(2)
+        if sks.min() == 1:
             sks = sks - 1
-
 
         for idx, ann in enumerate(tgt['keypoints']):
             kp = np.array(ann.cpu())
             Z = kp[:num_kpts*2] * np.array([W, H] * num_kpts)
             x = Z[0::2]
             y = Z[1::2]
-            if len(color) > 0:
-                c = color[idx % len(color)]
-            else:
-                c = (np.random.random((1, 3)) * 0.6 + 0.4).tolist()[0]
+            c = color_kpt[idx % len(color_kpt)]
 
             for sk in sks:
                 plt.plot(x[sk], y[sk], linewidth=1, color=c)
@@ -209,14 +308,19 @@ def plot_on_image(image_pil, tgt, keypoint_skeleton,keypoint_text_prompt,output_
             for i in range(num_kpts):
                 c_kpt = color_kpt[i]
                 plt.plot(x[i], y[i], 'o', markersize=4, markerfacecolor=c_kpt, markeredgecolor='k', markeredgewidth=0.5)
+    
     ax.set_axis_off()
-    savename = os.path.join(output_dir, "pred.jpg")
-    print("savename: {}".format(savename))
-    os.makedirs(os.path.dirname(savename), exist_ok=True)
-    plt.savefig(savename, dpi=dpi)
-    plt.close()
 
+    # Convert the plot to a cv2 image
+    plt_canvas = fig.canvas
+    plt_canvas.draw()
+    img_array = np.frombuffer(plt_canvas.tostring_rgb(), dtype=np.uint8)
+    img_array = img_array.reshape(plt_canvas.get_width_height()[::-1] + (3,))
 
+    # Clean up
+    plt.close(fig)
+
+    return img_array
 
 
 # def load_image(image_path):
@@ -310,15 +414,79 @@ def get_unipose_output(model, image, instance_text_prompt,keypoint_text_prompt, 
 
     return filtered_boxes,filtered_keypoints
 
-def run_unipose_inference(config_file, checkpoint_path, image_path, instance_text_prompt, output_dir,
+# def run_unipose_inference(config_file, checkpoint_path, image_path, instance_text_prompt, output_dir,
+#                           keypoint_text_example=None, box_threshold=0.1, iou_threshold=0.9, cpu_only=False):
+#     """
+#     Run UniPose inference on a given image.
+
+#     Args:
+#         config_file (str): Path to the config file.
+#         checkpoint_path (str): Path to the checkpoint file.
+#         image_path (str): Path to the input image file.
+#         instance_text_prompt (str): Instance text prompt (e.g., "person").
+#         output_dir (str): Directory to save the output.
+#         keypoint_text_example (str, optional): Keypoint text prompt. Defaults to None.
+#         box_threshold (float, optional): Box threshold. Defaults to 0.1.
+#         iou_threshold (float, optional): IOU threshold. Defaults to 0.9.
+#         cpu_only (bool, optional): If True, run on CPU only. Defaults to False.
+
+#     Returns:
+#         None
+#     """
+
+#     # Set the keypoint and skeleton information based on instance or keypoint text prompt
+#     if keypoint_text_example in globals():
+#         keypoint_dict = globals()[keypoint_text_example]
+#         keypoint_text_prompt = keypoint_dict.get("keypoints")
+#         keypoint_skeleton = keypoint_dict.get("skeleton")
+#     elif instance_text_prompt in globals():
+#         keypoint_dict = globals()[instance_text_prompt]
+#         keypoint_text_prompt = keypoint_dict.get("keypoints")
+#         keypoint_skeleton = keypoint_dict.get("skeleton")
+#     else:
+#         keypoint_dict = globals()["animal"]
+#         keypoint_text_prompt = keypoint_dict.get("keypoints")
+#         keypoint_skeleton = keypoint_dict.get("skeleton")
+
+#     # Create output directory if it doesn't exist
+#     os.makedirs(output_dir, exist_ok=True)
+
+#     # Load image
+#     image_pil, image = load_image(image_path)
+
+#     # Load model
+#     model = load_model(config_file, checkpoint_path, cpu_only=cpu_only)
+
+#     # Save the raw image
+#     image_pil.save(os.path.join(output_dir, "raw_image.jpg"))
+
+#     # Run the model to get bounding boxes and keypoints
+#     boxes_filt, keypoints_filt = get_unipose_output(
+#         model, image, instance_text_prompt, keypoint_text_prompt, box_threshold, iou_threshold, cpu_only=cpu_only
+#     )
+
+#     # Prepare prediction dictionary for visualization
+#     size = image_pil.size
+#     pred_dict = {
+#         "boxes": boxes_filt,
+#         "keypoints": keypoints_filt,
+#         "size": [size[1], size[0]]
+#     }
+
+#     # Plot keypoints on the image and save the output
+#     plot_on_image(image_pil, pred_dict, keypoint_skeleton, keypoint_text_prompt)
+
+
+
+def run_unipose_inference(config_file, checkpoint_path, cv_image, instance_text_prompt, output_dir,
                           keypoint_text_example=None, box_threshold=0.1, iou_threshold=0.9, cpu_only=False):
     """
-    Run UniPose inference on a given image.
+    Run UniPose inference on a given cv2 image.
 
     Args:
         config_file (str): Path to the config file.
         checkpoint_path (str): Path to the checkpoint file.
-        image_path (str): Path to the input image file.
+        cv_image (np.ndarray): Input image in cv2 format.
         instance_text_prompt (str): Instance text prompt (e.g., "person").
         output_dir (str): Directory to save the output.
         keypoint_text_example (str, optional): Keypoint text prompt. Defaults to None.
@@ -327,7 +495,7 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
         cpu_only (bool, optional): If True, run on CPU only. Defaults to False.
 
     Returns:
-        None
+        np.ndarray: Image with keypoints and bounding boxes drawn.
     """
 
     # Set the keypoint and skeleton information based on instance or keypoint text prompt
@@ -347,8 +515,9 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
     # Create output directory if it doesn't exist
     os.makedirs(output_dir, exist_ok=True)
 
-    # Load image
-    image_pil, image = load_image(image_path)
+    # Convert the cv2 image to a PIL image
+    image_pil = Image.fromarray(cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB))
+    image = np.array(image_pil)
 
     # Load model
     model = load_model(config_file, checkpoint_path, cpu_only=cpu_only)
@@ -369,9 +538,13 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
         "size": [size[1], size[0]]
     }
 
-    # Plot keypoints on the image and save the output
-    plot_on_image(image_pil, pred_dict, keypoint_skeleton, keypoint_text_prompt, output_dir)
-
+    # Plot keypoints on the image and return the output
+    output_image = plot_on_image(image_pil, pred_dict, keypoint_skeleton, keypoint_text_prompt)
+    
+    # Convert output image back to cv2 format
+    output_image_cv = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)
+    
+    return output_image_cv
 
 # Example usage
 if __name__ == "__main__":
