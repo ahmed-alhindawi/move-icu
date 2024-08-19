@@ -19,7 +19,7 @@ import os
 import torch
 from torch import nn
 
-from util.misc import NestedTensor
+from src.unipose.unipose.util.misc import NestedTensor
 
 
 class PositionEmbeddingSine(nn.Module):

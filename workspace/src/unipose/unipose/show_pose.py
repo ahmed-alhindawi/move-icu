@@ -4,52 +4,54 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import cv2
+import message_filters
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
 from unipose.inference_on_a_image import run_unipose_inference  # Import the inference function
 
 class ShowPose(Node):
     def __init__(self):
-        super().__init__('unipose')
-        
-        # Subscribe to the camera topic
-        self.image_sub = self.create_subscription(
-            Image,
-            '/camera',  # Adjust the topic name as needed
-            self.image_callback,
-            10)
-        
-        # Publisher for the annotated image
-        self.image_pub = self.create_publisher(Image, '/unipose/output_image', 10)
-        
-        # Set up the OpenCV bridge
-        self.bridge = CvBridge()
+        super().__init__("show_pose")
 
-    def image_callback(self, msg):
+        qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
+        # Subscriber for the image topic
+        self._subscriber = message_filters.Subscriber(self, Image, "/camera", qos_profile=qos_profile)
+
+        # Publisher for the annotated image
+        self._publisher = self.create_publisher(Image, "/show_pose", 1)
+
+        # CvBridge to convert between ROS and OpenCV
+        self._cvbridge = CvBridge()
+
+        # Time synchronizer to process images
+        self._ts = message_filters.TimeSynchronizer([self._subscriber], 10)
+        self._ts.registerCallback(self.callback)
+
+    def callback(self, img_msg):
         try:
             # Convert the ROS Image message to a CV2 image
-            cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
+            cv_image = self._cvbridge.imgmsg_to_cv2(img_msg, "bgr8")
         except CvBridge.Error as e:
             self.get_logger().error(f"CvBridge Error: {e}")
             return
 
-        # Run the inference using the imported function
-        label = run_unipose_inference(cv_image)
-
-        # Display the label on the image
-        cv2.putText(cv_image, label, (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
+        # Run the pose estimation inference and get the annotated image
+        annotated_image = run_unipose_inference(cv_image)
 
         try:
             # Convert the annotated CV image back to a ROS Image message
-            output_image_msg = self.bridge.cv2_to_imgmsg(cv_image, "bgr8")
-            
-            # Publish the output image
-            self.image_pub.publish(output_image_msg)
+            output_image_msg = self._cvbridge.cv2_to_imgmsg(annotated_image, "bgr8")
+            self._publisher.publish(output_image_msg)
         except CvBridge.Error as e:
             self.get_logger().error(f"CvBridge Error: {e}")
 
 def main(args=None):
     rclpy.init(args=args)
-    
+
     node = ShowPose()
 
     try:
@@ -60,5 +62,5 @@ def main(args=None):
     node.destroy_node()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

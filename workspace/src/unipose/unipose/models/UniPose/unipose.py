@@ -6,6 +6,10 @@
 # Modified from Deformable DETR (https://github.com/fundamentalvision/Deformable-DETR)
 # Copyright (c) 2020 SenseTime. All Rights Reserved.
 # ------------------------------------------------------------------------
+
+import sys
+sys.path.insert(1, '.')
+
 import copy
 import math
 import os
@@ -14,9 +18,9 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 from torchvision.ops.boxes import nms
-from util.keypoint_ops import keypoint_xyzxyz_to_xyxyzz
-from util import box_ops
-from util.misc import (NestedTensor, nested_tensor_from_tensor_list,
+from src.unipose.unipose.util.keypoint_ops import keypoint_xyzxyz_to_xyxyzz
+from src.unipose.unipose.util import box_ops
+from src.unipose.unipose.util.misc import (NestedTensor, nested_tensor_from_tensor_list,
                        accuracy, get_world_size, interpolate,
                        is_dist_avail_and_initialized, inverse_sigmoid)
 from .backbone import build_backbone

@@ -1,0 +1,6 @@
+source;share/MultiScaleDeformableAttention/hook/pythonpath.ps1
+source;share/MultiScaleDeformableAttention/hook/pythonpath.dsv
+source;share/MultiScaleDeformableAttention/hook/pythonpath.sh
+source;../../build/MultiScaleDeformableAttention/share/MultiScaleDeformableAttention/hook/pythonpath_develop.ps1
+source;../../build/MultiScaleDeformableAttention/share/MultiScaleDeformableAttention/hook/pythonpath_develop.dsv
+source;../../build/MultiScaleDeformableAttention/share/MultiScaleDeformableAttention/hook/pythonpath_develop.sh

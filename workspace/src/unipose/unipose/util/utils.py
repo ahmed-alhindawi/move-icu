@@ -203,7 +203,7 @@ def inverse_sigmoid(x, eps=1e-5):
     return torch.log(x1/x2)
 
 import argparse
-from util.config import Config
+from src.unipose.unipose.util.config import Config
 def get_raw_dict(args):
     """
     return the dicf contained in args.

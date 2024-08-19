@@ -28,5 +28,15 @@ def generate_launch_description():
             remappings=[("/camera", image_rect_color_topic),
                         ("/landmarks", "/landmarks"),
                         ("/faces", "/faces")]
+        ),
+        Node(
+            package='unipose',
+            namespace='face1',
+            executable='show_pose',
+            name='show_pose',
+            remappings=[("/camera", image_rect_color_topic),
+                        ("/unipose", "unipose")
+                        ("/landmarks", "/landmarks"),
+                        ("/faces", "/faces")]
         )
     ])

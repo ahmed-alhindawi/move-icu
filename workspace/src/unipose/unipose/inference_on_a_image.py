@@ -1,3 +1,6 @@
+import sys
+sys.path.insert(1, '.')
+
 import argparse
 import os
 import sys
@@ -5,17 +8,18 @@ import numpy as np
 import torch
 from PIL import Image, ImageDraw, ImageFont
 import clip
-import transforms as T
-from models import build_model
-from predefined_keypoints import *
-from util import box_ops
-from util.config import Config
-from util.utils import clean_state_dict
+#import transforms as T
+from .models import build_model
+from src.unipose.unipose.predefined_keypoints import *
+from .util import box_ops
+from .util.config import Config
+from .util.utils import clean_state_dict
 import matplotlib.pyplot as plt
 from matplotlib.collections import PatchCollection
 from matplotlib.patches import Polygon
-from matplotlib import transforms
+#from matplotlib import transforms
 from torchvision.ops import nms
+import torchvision.transforms as T
 
 
 def text_encoding(instance_names, keypoints_names, model, device):
@@ -215,20 +219,36 @@ def plot_on_image(image_pil, tgt, keypoint_skeleton,keypoint_text_prompt,output_
 
 
 
+# def load_image(image_path):
+#     # load image
+#     image_pil = Image.open(image_path).convert("RGB")  # load image
+
+#     transform = T.Compose(
+#         [
+#             T.RandomResize([800], max_size=1333),
+#             T.ToTensor(),
+#             T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+#         ]
+#     )
+#     image, _ = transform(image_pil, None)  # 3, h, w
+#     return image_pil, image
+
+
 def load_image(image_path):
-    # load image
-    image_pil = Image.open(image_path).convert("RGB")  # load image
+    # Load image with Pillow
+    image_pil = Image.open(image_path).convert("RGB")
 
-    transform = T.Compose(
-        [
-            T.RandomResize([800], max_size=1333),
-            T.ToTensor(),
-            T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
-        ]
-    )
-    image, _ = transform(image_pil, None)  # 3, h, w
-    return image_pil, image
+    # Define transformations
+    transform = T.Compose([
+        T.Resize(800),  # Resize the image
+        T.ToTensor(),  # Convert the image to a tensor
+        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize the image
+    ])
 
+    # Apply transformations
+    image_tensor = transform(image_pil)  # 3, h, w
+
+    return image_pil, image_tensor
 
 def load_model(model_config_path, model_checkpoint_path, cpu_only=False):
     args = Config.fromfile(model_config_path)

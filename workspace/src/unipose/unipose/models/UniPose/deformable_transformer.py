@@ -21,7 +21,7 @@ import os
 import copy
 from typing import Optional
 
-from util.misc import inverse_sigmoid
+from src.unipose.unipose.util.misc import inverse_sigmoid
 
 import torch
 from torch import nn, Tensor
