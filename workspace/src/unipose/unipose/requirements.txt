@@ -14,3 +14,4 @@ torch
 torchvision
 transformers
 yapf
+clip-1.0

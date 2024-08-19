@@ -1,8 +1,6 @@
 from setuptools import find_packages, setup
-import os
-from glob import glob
 
-package_name = 'unipose_d'
+package_name = 'unipose'
 
 setup(
     name=package_name,
@@ -12,20 +10,17 @@ setup(
         ('share/ament_index/resource_index/packages',
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
-        (os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*')))
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'transforms'],
     zip_safe=True,
     maintainer='root',
-    maintainer_email='a.al-hindawi@ucl.ac.uk',
+    maintainer_email='118908616+eliseleahy@users.noreply.github.com',
     description='TODO: Package description',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'unipose_d = unipose_d.unipose_d:main',
-            'show_uniposes = unipose_d.show_uniposes:main',
-            'fit_uniposes = unipose_d.fit_uniposes:main'
+            'show_pose = unipose.show_pose:main',
         ],
     },
 )

@@ -1,0 +1,17 @@
+addict
+gradio
+ipdb
+matplotlib
+numpy
+pandas
+Pillow
+PyYAML
+seaborn
+setuptools
+termcolor
+timm
+torch
+torchvision
+transformers
+yapf
+clip-1.0

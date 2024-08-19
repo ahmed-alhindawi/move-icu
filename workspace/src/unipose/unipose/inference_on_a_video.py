@@ -17,6 +17,10 @@ from matplotlib.patches import Polygon
 from matplotlib import transforms
 from torchvision.ops import nms
 import io
+import cv2
+from PIL import Image
+import numpy as np
+
 
 
 def text_encoding(instance_names, keypoints_names, model, device):
@@ -362,9 +366,6 @@ def run_unipose_inference(config_file, checkpoint_path, image_pil, instance_text
 
     return processed_image
 
-import cv2
-from PIL import Image
-import numpy as np
 
 
 def process_video_with_unipose(config_file, checkpoint_path, video_path, instance_text_prompt, output_video_path,
@@ -443,8 +444,8 @@ def process_video_with_unipose(config_file, checkpoint_path, video_path, instanc
 if __name__ == "__main__":
     config_file = "/workspace/src/unipose_d/unipose_d/config_model/UniPose_SwinT.py"  # Path to config file
     checkpoint_path = "/workspace/src/unipose_d/unipose_d/config_model/unipose_swint.pth"  # Path to checkpoint file
-    video_path = "/workspace/src/unipose_d/unipose_d/walking.mp4"  # Path to input video
-    output_video_path = "/workspace/src/unipose_d/unipose_d/walking_pred.mp4"  # Path to save output video
+    video_path = "/workspace/src/unipose_d/unipose_d/dev_data/walking.mp4"  # Path to input video
+    output_video_path = "/workspace/src/unipose_d/unipose_d/dev_data/walking_pred.mp4"  # Path to save output video
     instance_text_prompt = "person"  # Instance text prompt
     keypoint_text_example = "person"  # Keypoint text prompt (optional)
 
