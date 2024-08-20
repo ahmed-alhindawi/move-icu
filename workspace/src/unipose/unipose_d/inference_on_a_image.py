@@ -210,6 +210,7 @@ def plot_on_image(image_pil, tgt, keypoint_skeleton,keypoint_text_prompt,output_
     print("savename: {}".format(savename))
     os.makedirs(os.path.dirname(savename), exist_ok=True)
     plt.savefig(savename, dpi=dpi)
+    plt.show()
     plt.close()
 
 
@@ -355,12 +356,12 @@ def run_unipose_inference(config_file, checkpoint_path, image_path, instance_tex
 
 # Example usage
 if __name__ == "__main__":
-    config_file = "/workspace/src/unipose_d/unipose_d/config_model/UniPose_SwinT.py"  # Path to config file
-    checkpoint_path = "/workspace/src/unipose_d/unipose_d/config_model/unipose_swint.pth"  # Path to checkpoint file
-    image_path = "/workspace/src/unipose_d/unipose_d/EP_walk.png"  # Path to the image file
+    config_file = "/workspace/src/unipose/unipose_d/config_model/UniPose_SwinT.py"  # Path to config file
+    checkpoint_path = "/workspace/src/unipose/unipose_d/config_model/unipose_swint.pth"  # Path to checkpoint file
+    image_path = "/workspace/src/unipose/unipose_d/dev_data/climbing.jpg"  # Path to the image file
     instance_text_prompt = "person"  # Instance text prompt
     keypoint_text_example = "person"  # Keypoint text prompt (optional)
-    output_dir = "/workspace/src/unipose_d/unipose_d"  # Output directory
+    output_dir = "/workspace/src/unipose/unipose_d"  # Output directory
 
     # Call the function
     run_unipose_inference(

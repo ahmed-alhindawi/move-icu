@@ -39,8 +39,19 @@ class ShowPose(Node):
             self.get_logger().error(f"CvBridge Error: {e}")
             return
 
+        config_file = "/workspace/src/unipose/unipose/config_model/UniPose_SwinT.py"  # Path to config file
+        checkpoint_path = "/workspace/src/unipose/unipose/config_model/unipose_swint.pth"  # Path to checkpoint file
+        instance_text_prompt = "person"  # Instance text prompt
+        keypoint_text_example = "person"  # Keypoint text prompt (optional)
+
         # Run the pose estimation inference and get the annotated image
-        annotated_image = run_unipose_inference(cv_image)
+        annotated_image = run_unipose_inference(
+        config_file = config_file, 
+        checkpoint_path = checkpoint_path, 
+        cv_image = cv_image, 
+        instance_text_prompt = instance_text_prompt, 
+        keypoint_text_example = keypoint_text_example
+        )
 
         try:
             # Convert the annotated CV image back to a ROS Image message
