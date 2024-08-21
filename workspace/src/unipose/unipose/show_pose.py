@@ -1,66 +1,89 @@
-#!/usr/bin/env python3
-
-import rclpy
-#!/usr/bin/env python3
-
 import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
+from geometry_msgs.msg import PoseArray, Pose
 from cv_bridge import CvBridge
-import cv2
-import numpy as np
-from unipose.inference_on_a_image import run_unipose_inference  # Import your pose estimation function
+from rclpy.qos import QoSProfile, QoSReliabilityPolicy, QoSHistoryPolicy
+from moveicu_interfaces.msg import StampedBoundingBoxList, StampedFacialLandmarksList
+import message_filters
 
-class PoseEstimationNode(Node):
+# Import your custom UniPose functions
+from .inference_on_a_image import run_unipose_inference, load_model
+
+class ShowPoseNode(Node):
     def __init__(self):
-        super().__init__('pose_estimation_node')
-        
-        # Initialize publisher
-        self.publisher = self.create_publisher(Image, '/pose_estimation/output_image', 10)
-        
-        # Initialize subscriber
-        self.subscription = self.create_subscription(
-            Image,
-            '/camera',  # Change this to your actual camera topic if different
-            self.image_callback,
-            10
-        )
-        
-        # Initialize CvBridge
-        self.br = CvBridge()
-        
-        # Timer for publishing images (if needed for other use cases)
-        # self.timer = self.create_timer(1.0, self.publish_image)  # Optional
+        super().__init__("show_pose")
 
-    def image_callback(self, msg):
+        # QoS Profile for reliable message delivery
+        self.qos_profile = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=5
+        )
+
+        # Create subscriptions with QoS profile
+        self.camera_sub = self.create_subscription(
+            Image,
+            '/camera',
+            self.camera_callback,
+            qos_profile=self.qos_profile
+        )
+        self.landmarks_sub = self.create_subscription(
+            StampedFacialLandmarksList,
+            '/landmarks',
+            self.landmarks_callback,
+            qos_profile=self.qos_profile
+        )
+
+        # Create message filters
+        self.ts = message_filters.TimeSynchronizer([self.camera_sub, self.landmarks_sub], 10)
+        self.ts.registerCallback(self.callback)
+
+        # Publisher for the pose data
+        self.pose_publisher = self.create_publisher(PoseArray, '/pose', 1)
+
+        # CvBridge for image conversions
+        self.cv_bridge = CvBridge()
+
+        # Load UniPose Model
+        config_file="/workspace/src/unipose/unipose/config_model/UniPose_SwinT.py",
+        checkpoint_path="/workspace/src/unipose/unipose/config_model/unipose_swint.pth",
+        self.unipose_model = load_model(config_file, checkpoint_path, cpu_only=False)
+
+    def callback(self, camera_msg, landmarks_msg):
         # Convert ROS Image message to OpenCV image
-        cv_image = self.br.imgmsg_to_cv2(msg)
+        cv_image = self.cv_bridge.imgmsg_to_cv2(camera_msg, "bgr8")
+
+        # Process the image with UniPose to get keypoints and bounding boxes
+        _, keypoints_filt = run_unipose_inference(
+            config_file="/workspace/src/unipose/unipose/config_model/UniPose_SwinT.py",
+            checkpoint_path="/workspace/src/unipose/unipose/config_model/unipose_swint.pth",
+            cv_image=cv_image,
+            instance_text_prompt="person",
+            keypoint_text_example="person"
+        )
+
+        # Create and populate PoseArray message
+        pose_array_msg = PoseArray()
+        poses = []
+        for keypoint in keypoints_filt:
+            pose = Pose()
+            pose.position.x = keypoint[0]  # x coordinate
+            pose.position.y = keypoint[1]  # y coordinate
+            pose.position.z = 0.0
+            pose.orientation.w = 1.0
+            poses.append(pose)
+        pose_array_msg.poses = poses
         
-        # Apply pose estimation
-        try:
-            output_image = run_unipose_inference(cv_image)
-            self.get_logger().info('Pose estimation applied successfully.')
-        except Exception as e:
-            self.get_logger().error(f'Error during pose estimation: {str(e)}')
-            output_image = cv_image  # Fallback to original image in case of error
-        
-        # Convert OpenCV image back to ROS Image message
-        try:
-            ros_image = self.br.cv2_to_imgmsg(output_image, encoding='bgr8')
-            self.publisher.publish(ros_image)
-            self.get_logger().info('Published processed image to /pose_estimation/output_image')
-        except Exception as e:
-            self.get_logger().error(f'Error converting image to ROS message: {str(e)}')
+        # Publish the PoseArray message
+        self.pose_publisher.publish(pose_array_msg)
 
 def main(args=None):
     rclpy.init(args=args)
-    node = PoseEstimationNode()
+    node = ShowPoseNode()
     rclpy.spin(node)
-    
-    # Clean up
     node.destroy_node()
-    cv2.destroyAllWindows()
     rclpy.shutdown()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

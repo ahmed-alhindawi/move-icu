@@ -23,7 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'show_pose = unipose.show_pose:main', 
+            'img_pub = unipose.pose_pub:main',
+            'img_sub = unipose.pose_sub:main', 
         ],
     },
 )

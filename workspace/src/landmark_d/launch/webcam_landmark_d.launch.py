@@ -36,13 +36,13 @@ def generate_launch_description():
             remappings=[("/camera", "/camera"),
                         ("/landmarks", "/landmarks"),
                         ("/faces", "/faces")]
-        ),
-        Node(
-            package='unipose',
-            namespace='unipose',  # Adjust this if needed
-            executable='show_pose',
-            name='show_pose',
-            remappings=[("/camera", "/camera"),
-                        ("/unipose", "/unipose")]
         )
+        # Node(
+        #     package='unipose',
+        #     namespace='unipose',  # Adjust this if needed
+        #     executable='show_pose',
+        #     name='show_pose',
+        #     remappings=[("/camera", "/camera"),
+        #                 ("/unipose", "/unipose")]
+        # )
     ])
