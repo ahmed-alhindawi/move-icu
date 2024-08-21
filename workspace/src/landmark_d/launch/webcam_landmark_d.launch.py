@@ -9,8 +9,8 @@ def generate_launch_description():
             namespace='webcam_d',
             executable='webcam',
             name='webcam_publisher',
-            remappings=[("/camera", "/camera"),
-                        ("/faces", "/faces")]
+            remappings=[("/camera", "/camera")]
+                        #("/faces", "/faces")]
         ),
         Node(
             package='face_d',
@@ -39,11 +39,10 @@ def generate_launch_description():
         ),
         Node(
             package='unipose',
-            namespace='unipose_namespace',  # Adjust this if needed
+            namespace='unipose',  # Adjust this if needed
             executable='show_pose',
             name='show_pose',
             remappings=[("/camera", "/camera"),
-                        ("/faces", "/faces"),
-                        ("/landmarks", "/landmarks")]
+                        ("/unipose", "/unipose")]
         )
     ])
