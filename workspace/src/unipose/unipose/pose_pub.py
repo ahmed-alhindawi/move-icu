@@ -16,10 +16,17 @@ class ImagePublisher(Node):
     self.br = CvBridge()
     
   def timer_callback(self):
-    ret, frame = self.cap.read()
-    if ret == True:
-      self.publisher_.publish(self.br.cv2_to_imgmsg(frame))
-    self.get_logger().info('Publishing video frame')
+      ret, frame = self.cap.read()
+      if not ret:
+          self.get_logger().error('Failed to capture image')
+          return
+      
+      # Convert the OpenCV image to a ROS Image message
+      image_msg = self.br.cv2_to_imgmsg(frame, encoding="bgr8")
+      
+      # Publish the Image message
+      self.publisher_.publish(image_msg)
+      self.get_logger().info('Publishing video frame')
    
 def main(args=None):
   rclpy.init(args=args)
