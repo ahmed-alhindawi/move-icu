@@ -2,7 +2,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import cv2
+import warnings
 
 from .inference_on_a_image import UniPoseLiveInferencer  # Adjust import as needed
 
@@ -31,18 +31,9 @@ class ImageSubscriber(Node):
         cv_image = self.br.imgmsg_to_cv2(data)
         #import pdb;pdb.set_trace()
 
-        # Run inference
-        output_image = self.inferencer.run_inference(
-            cv_image=cv_image
-        )
-        print(output_image.shape)  # This should give you (height, width, 3)
-        print(output_image.dtype)  # This should give you dtype('uint8')
-        # Convert the image to RGB format before publishing
-        #output_image_rgb = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
-
-        #import pdb;pdb.set_trace()
-        # print(output_image_rgb.shape)  # This should give you (height, width, 3)
-        # print(output_image_rgb.dtype)  # This should still be dtype('uint8')
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            output_image = self.inferencer.run_inference(cv_image=cv_image)
 
         # Create an Image message
         output_image_msg = self.br.cv2_to_imgmsg(output_image,"bgr8")
