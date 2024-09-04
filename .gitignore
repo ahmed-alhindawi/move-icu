@@ -168,3 +168,5 @@ cython_debug/
 */build/
 */install/
 */log/
+/workspace/src/unipose/install
+/workspace/src/unipose/log

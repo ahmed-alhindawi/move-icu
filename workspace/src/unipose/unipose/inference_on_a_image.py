@@ -176,37 +176,6 @@ def get_unipose_output(model, image, instance_text_prompt, keypoint_text_prompt,
 
 
 
-# def run_unipose_inference(config_file, checkpoint_path, cv_image, instance_text_prompt, keypoint_text_example=None, keypoint_text_prompt="keypoints", box_threshold=0.1, iou_threshold=0.9, cpu_only=False):
-#     instance_text_prompt = "person"
-    
-#     if instance_text_prompt in globals():
-#         keypoint_dict = globals()[instance_text_prompt]
-#         keypoint_text_prompt = keypoint_dict.get("keypoints")
-#         keypoint_skeleton = keypoint_dict.get("skeleton")
-#     else:
-#         keypoint_dict = globals()["animal"]
-#         keypoint_text_prompt = keypoint_dict.get("keypoints")
-#         keypoint_skeleton = keypoint_dict.get("skeleton")
-    
-#     image_pil, image = load_image(cv_image)
-#     model = load_model(config_file, checkpoint_path, cpu_only=cpu_only)
-
-#     boxes_filt, keypoints_filt = get_unipose_output(
-#         model, image, instance_text_prompt, keypoint_text_prompt, box_threshold, iou_threshold, cpu_only=cpu_only
-#     )
-
-#     pred_dict = {
-#         "boxes": boxes_filt,
-#         "keypoints": keypoints_filt,
-#         "size": [image_pil.size[1], image_pil.size[0]]
-#     }
-
-#     output_image = plot_on_image(image_pil, pred_dict, keypoint_skeleton, keypoint_text_prompt)
-#     output_image_cv = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)
-
-#     return output_image_cv
-
-
 class UniPoseLiveInferencer:
     def __init__(self, config_file, checkpoint_path, cpu_only=False):
         self.device = "cpu" if cpu_only else "cuda"
@@ -256,27 +225,3 @@ class UniPoseLiveInferencer:
         return output_image_cv
 
 
-
-# Example usage
-if __name__ == "__main__":
-    config_file = "/workspace/src/unipose/unipose/config_model/UniPose_SwinT.py"  # Path to config file
-    checkpoint_path = "/workspace/src/unipose/unipose/config_model/unipose_swint.pth"  # Path to checkpoint file
-    image_path = "/workspace/src/unipose/unipose_d/dev_data/climbing.jpg"  # Path to the image file
-    instance_text_prompt = "person"  # Instance text prompt
-    keypoint_text_example = "person"  # Keypoint text prompt (optional)
-    output_dir = "/workspace/src/unipose_d/unipose_d"  # Output directory
-
-    cv_image = cv2.imread(image_path)
-
-    # # Call the function
-    # image = run_unipose_inference(
-    #     config_file = config_file, 
-    #     checkpoint_path = checkpoint_path, 
-    #     cv_image = cv_image, 
-    #     instance_text_prompt = instance_text_prompt
-    #     )
-    
-    # image_rgb = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-    # # Step 3: Plot the image using matplotlib
-    # print(image_rgb)
