@@ -11,7 +11,7 @@ class ImageSubscriber(Node):
         super().__init__('image_subscriber')
         self.subscription = self.create_subscription(
             Image,
-            'jetson_webcam',
+            'webcam',
             self.listener_callback,
             10)
         self.subscription  # prevent unused variable warning
@@ -23,7 +23,7 @@ class ImageSubscriber(Node):
         self.inferencer = UniPoseLiveInferencer(config_file, checkpoint_path, cpu_only=False)
 
         # Initialize publisher for processed images
-        self.publisher = self.create_publisher(Image, 'processed_image', 10)
+        self.publisher = self.create_publisher(Image, 'pose_estimation', 1)
 
     def listener_callback(self, data):
         self.get_logger().info('Receiving video frame')

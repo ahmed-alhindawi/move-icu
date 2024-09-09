@@ -170,3 +170,9 @@ cython_debug/
 */log/
 /workspace/src/unipose/install
 /workspace/src/unipose/log
+workspace/src/unipose/unipose/config_model/UniPose_COCO.pth
+workspace/src/unipose/unipose/config_model/UniPose_MPII.pth
+workspace/src/unipose/unipose/config_model/unipose_swint.pth
+workspace/src/unipose/unipose_d/config_model/UniPose_COCO.pth
+workspace/src/unipose/unipose_d/config_model/UniPose_MPII.pth
+workspace/src/unipose/unipose_d/config_model/unipose_swint.pth

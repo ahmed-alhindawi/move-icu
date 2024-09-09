@@ -25,6 +25,7 @@ setup(
         'console_scripts': [
             'img_pub = unipose.pose_pub:main',
             'img_sub = unipose.pose_sub:main', 
+            'img_pose_webcam = unipose.pose_webcam_node:main'
         ],
     },
 )
