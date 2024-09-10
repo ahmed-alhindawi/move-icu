@@ -2,8 +2,8 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import warnings
-
+import cv2
+import time
 from .inference_on_a_image import UniPoseLiveInferencer  # Adjust import as needed
 
 class ImageSubscriber(Node):
@@ -13,8 +13,8 @@ class ImageSubscriber(Node):
             Image,
             'webcam',
             self.listener_callback,
-            10)
-        self.subscription  # prevent unused variable warning
+            1)  # Increased queue size
+        self.publisher = self.create_publisher(Image, 'pose_estimation', 1)  # Increased queue size
         self.br = CvBridge()
         
         # Initialize UniPoseInferencer with the model
@@ -22,25 +22,28 @@ class ImageSubscriber(Node):
         checkpoint_path = "/workspace/src/unipose/unipose/config_model/unipose_swint.pth"
         self.inferencer = UniPoseLiveInferencer(config_file, checkpoint_path, cpu_only=False)
 
-        # Initialize publisher for processed images
-        self.publisher = self.create_publisher(Image, 'pose_estimation', 1)
-
     def listener_callback(self, data):
-        self.get_logger().info('Receiving video frame')
+        # Calculate the delay
+
         #import pdb;pdb.set_trace()
         cv_image = self.br.imgmsg_to_cv2(data)
-        #import pdb;pdb.set_trace()
 
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
-            output_image = self.inferencer.run_inference(cv_image=cv_image)
+        # Resize the image if needed (optional)
+        resized_image = cv2.resize(cv_image, (640, 480))
 
-        # Create an Image message
-        output_image_msg = self.br.cv2_to_imgmsg(output_image,"bgr8")
+        start_time = time.time()
+        output_image = self.inferencer.run_inference(cv_image=resized_image)
+        end_time = time.time()
+
+        delay_2 = end_time - start_time
+
+        self.get_logger().info(f'Processing time: {delay_2:.2f} seconds')
         
-        #import pdb;pdb.set_trace()
-        # Publish the image message output_image_rgb = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
+
+        output_image_msg = self.br.cv2_to_imgmsg(output_image, "bgr8")
         self.publisher.publish(output_image_msg)
+
+
 
 def main(args=None):
     rclpy.init(args=args)

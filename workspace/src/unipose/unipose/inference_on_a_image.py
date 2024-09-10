@@ -42,18 +42,79 @@ def text_encoding(instance_names, keypoints_names, model, device):
 
 
 
-def plot_on_image(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
+# def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
+#     num_kpts = len(keypoint_text_prompt)
+#     H, W = tgt["size"]
+
+#     # Convert PIL image to a NumPy array (OpenCV format)
+#     image_np = np.array(image_pil)
+
+#     # Create a white background image of the same size as the original
+#     keypoints_image = np.ones_like(image_np) * 255
+
+#     color_kpt = [
+#         (0, 0, 0), (255, 255, 255), (255, 0, 0),
+#         (255, 255, 0), (128, 41, 41), (0, 0, 255),
+#         (176, 225, 230), (0, 255, 0), (161, 33, 240),
+#         (209, 181, 140), (255, 97, 0), (135, 38, 87),
+#         (255, 100, 71), (255, 0, 255), (10, 23, 69),
+#         (51, 161, 201), (240, 230, 140), (85, 107, 46),
+#         (135, 207, 235), (181, 125, 220), (64, 224, 209)
+#     ]
+#     color_box = (135, 207, 235)
+
+#     # Draw bounding boxes on the original image and the keypoints image
+#     boxes = tgt['boxes'].cpu()
+#     for box in boxes:
+#         unnormbbox = box * torch.Tensor([W, H, W, H])
+#         unnormbbox[:2] -= unnormbbox[2:] / 2
+#         bbox_x, bbox_y, bbox_w, bbox_h = unnormbbox.tolist()
+#         top_left = (int(bbox_x), int(bbox_y))
+#         bottom_right = (int(bbox_x + bbox_w), int(bbox_y + bbox_h))
+        
+#         # Draw bounding boxes on both the original image and the keypoints image
+#         cv2.rectangle(image_np, top_left, bottom_right, color_box, 1)
+#         cv2.rectangle(keypoints_image, top_left, bottom_right, color_box, 1)
+    
+#     if 'keypoints' in tgt:
+#         sks = np.array(keypoint_skeleton)
+#         if sks.min() == 1:
+#             sks -= 1
+
+#         keypoints = tgt['keypoints']
+#         for idx, ann in enumerate(keypoints):
+#             kp = np.array(ann.cpu())
+#             Z = kp[:num_kpts * 2] * np.array([W, H] * num_kpts)
+#             x = Z[0::2]
+#             y = Z[1::2]
+#             color = color_kpt[idx % len(color_kpt)] if len(color_kpt) > 0 else tuple((np.random.random(3) * 0.6 + 0.4 * 255).astype(int))
+
+#             # Draw keypoints and skeletons on the white background image
+#             for sk in sks:
+#                 for i in range(len(sk) - 1):
+#                     start_point = (int(x[sk[i]]), int(y[sk[i]]))
+#                     end_point = (int(x[sk[i + 1]]), int(y[sk[i + 1]]))
+#                     cv2.line(keypoints_image, start_point, end_point, color, 1)  # Draw lines on keypoints_image
+
+#             for i in range(num_kpts):
+#                 cv2.circle(keypoints_image, (int(x[i]), int(y[i])), 4, color, -1)  # Draw circles on keypoints_image
+
+#     # Return the keypoints image with the white background
+#     return keypoints_image
+
+
+def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
     num_kpts = len(keypoint_text_prompt)
     H, W = tgt["size"]
 
     # Convert PIL image to a NumPy array (OpenCV format)
     image_np = np.array(image_pil)
-
-    # Create a blank image (black background) of the same size as the original
-    keypoints_image = np.ones_like(image_np) * 255
+    
+    # Create a white background image of the same size as the original
+    keypoints_image = np.ones_like(image_np) *255
 
     color_kpt = [
-        (0, 0, 0), (255, 255, 255), (255, 0, 0),
+        (0, 0, 0), (255, 0, 0),
         (255, 255, 0), (128, 41, 41), (0, 0, 255),
         (176, 225, 230), (0, 255, 0), (161, 33, 240),
         (209, 181, 140), (255, 97, 0), (135, 38, 87),
@@ -63,19 +124,13 @@ def plot_on_image(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
     ]
     color_box = (135, 207, 235)
 
-    # List to store the keypoints (x, y coordinates)
-    keypoints_list = []
-
-    # Draw bounding boxes on the original image and the blank keypoints image
+    # Draw bounding boxes
     for box in tgt['boxes'].cpu():
         unnormbbox = box * torch.Tensor([W, H, W, H])
         unnormbbox[:2] -= unnormbbox[2:] / 2
         bbox_x, bbox_y, bbox_w, bbox_h = unnormbbox.tolist()
         top_left = (int(bbox_x), int(bbox_y))
         bottom_right = (int(bbox_x + bbox_w), int(bbox_y + bbox_h))
-        
-        # Draw bounding boxes on both the original image and the keypoints image
-        cv2.rectangle(image_np, top_left, bottom_right, color_box, 1)
         cv2.rectangle(keypoints_image, top_left, bottom_right, color_box, 1)
     
     if 'keypoints' in tgt:
@@ -90,24 +145,17 @@ def plot_on_image(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
             y = Z[1::2]
             color = color_kpt[idx % len(color_kpt)] if len(color_kpt) > 0 else tuple((np.random.random(3) * 0.6 + 0.4 * 255).astype(int))
 
-            # Store keypoints in the list
-            keypoints_list.append(list(zip(x, y)))
-
-            # Draw keypoints and skeletons on the blank image (lines and circles)
+            # Draw keypoints
             for sk in sks:
                 for i in range(len(sk) - 1):
                     start_point = (int(x[sk[i]]), int(y[sk[i]]))
                     end_point = (int(x[sk[i + 1]]), int(y[sk[i + 1]]))
-                    cv2.line(keypoints_image, start_point, end_point, color, 1)  # Draw line on keypoints_image
+                    cv2.line(keypoints_image, start_point, end_point, color, 1)
 
             for i in range(num_kpts):
-                cv2.circle(keypoints_image, (int(x[i]), int(y[i])), 4, color, -1)  # Draw circles on keypoints_image7
+                cv2.circle(keypoints_image, (int(x[i]), int(y[i])), 4, color, -1)
 
-        #import pdb;pdb.set_trace()
-    # Return both the original image (unchanged) and the keypoints image
     return keypoints_image
-
-
 
 
 
@@ -116,7 +164,7 @@ def load_image(cv_image):
     image_pil = Image.fromarray(cv_image_rgb)
     
     transform = T.Compose([
-        T.Resize(400),
+        T.Resize(600),
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
@@ -179,9 +227,13 @@ def get_unipose_output(model, image, instance_text_prompt, keypoint_text_prompt,
     keypoints = keypoints[keep]
 
     # Apply Non-Maximum Suppression (NMS)
+    # Apply Non-Maximum Suppression (NMS)
     keep_indices = nms(box_ops.box_cxcywh_to_xyxy(boxes), logits.max(dim=1)[0], iou_threshold=iou_threshold)
+
+    # Filter boxes and keypoints based on the indices that survive NMS
     filtered_boxes = boxes[keep_indices]
-    filtered_keypoints = keypoints[keep_indices]
+    filtered_keypoints = keypoints[keep_indices]  # Ensure this filters keypoints too
+
 
     return filtered_boxes, filtered_keypoints
 
@@ -193,6 +245,8 @@ class UniPoseLiveInferencer:
         self.model = self.load_model(config_file, checkpoint_path)
 
         self.model.to(self.device)
+
+        self.model.eval()  # Set model to evaluation mode
         # Set default instance and keypoint prompts
         self.instance_text_prompt = "person"
         self.keypoint_dict = globals().get(self.instance_text_prompt, {})
@@ -203,7 +257,7 @@ class UniPoseLiveInferencer:
         model = load_model(config_file, checkpoint_path, cpu_only=(self.device == "cpu"))
         return model
 
-    def run_inference(self, cv_image, box_threshold=0.1, iou_threshold=0.9):
+    def run_inference(self, cv_image, box_threshold=0.1, iou_threshold=0.8):
 
         # Convert the cv2 image to a PIL image
         image_pil, image = load_image(cv_image)
@@ -227,7 +281,7 @@ class UniPoseLiveInferencer:
         }
 
         # Plot keypoints on the image and return the output
-        output_image = plot_on_image(image_pil, pred_dict, self.keypoint_skeleton, self.keypoint_text_prompt)
+        output_image = plot_keypoints(image_pil, pred_dict, self.keypoint_skeleton, self.keypoint_text_prompt)
         
         # Convert output image back to cv2 format
         output_image_cv = cv2.cvtColor(output_image, cv2.COLOR_RGB2BGR)
