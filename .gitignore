@@ -176,3 +176,4 @@ workspace/src/unipose/unipose/config_model/unipose_swint.pth
 workspace/src/unipose/unipose_d/config_model/UniPose_COCO.pth
 workspace/src/unipose/unipose_d/config_model/UniPose_MPII.pth
 workspace/src/unipose/unipose_d/config_model/unipose_swint.pth
+workspace/src/zed-ros2-examples/

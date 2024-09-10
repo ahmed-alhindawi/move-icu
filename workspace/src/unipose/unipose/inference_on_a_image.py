@@ -42,66 +42,6 @@ def text_encoding(instance_names, keypoints_names, model, device):
 
 
 
-# def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
-#     num_kpts = len(keypoint_text_prompt)
-#     H, W = tgt["size"]
-
-#     # Convert PIL image to a NumPy array (OpenCV format)
-#     image_np = np.array(image_pil)
-
-#     # Create a white background image of the same size as the original
-#     keypoints_image = np.ones_like(image_np) * 255
-
-#     color_kpt = [
-#         (0, 0, 0), (255, 255, 255), (255, 0, 0),
-#         (255, 255, 0), (128, 41, 41), (0, 0, 255),
-#         (176, 225, 230), (0, 255, 0), (161, 33, 240),
-#         (209, 181, 140), (255, 97, 0), (135, 38, 87),
-#         (255, 100, 71), (255, 0, 255), (10, 23, 69),
-#         (51, 161, 201), (240, 230, 140), (85, 107, 46),
-#         (135, 207, 235), (181, 125, 220), (64, 224, 209)
-#     ]
-#     color_box = (135, 207, 235)
-
-#     # Draw bounding boxes on the original image and the keypoints image
-#     boxes = tgt['boxes'].cpu()
-#     for box in boxes:
-#         unnormbbox = box * torch.Tensor([W, H, W, H])
-#         unnormbbox[:2] -= unnormbbox[2:] / 2
-#         bbox_x, bbox_y, bbox_w, bbox_h = unnormbbox.tolist()
-#         top_left = (int(bbox_x), int(bbox_y))
-#         bottom_right = (int(bbox_x + bbox_w), int(bbox_y + bbox_h))
-        
-#         # Draw bounding boxes on both the original image and the keypoints image
-#         cv2.rectangle(image_np, top_left, bottom_right, color_box, 1)
-#         cv2.rectangle(keypoints_image, top_left, bottom_right, color_box, 1)
-    
-#     if 'keypoints' in tgt:
-#         sks = np.array(keypoint_skeleton)
-#         if sks.min() == 1:
-#             sks -= 1
-
-#         keypoints = tgt['keypoints']
-#         for idx, ann in enumerate(keypoints):
-#             kp = np.array(ann.cpu())
-#             Z = kp[:num_kpts * 2] * np.array([W, H] * num_kpts)
-#             x = Z[0::2]
-#             y = Z[1::2]
-#             color = color_kpt[idx % len(color_kpt)] if len(color_kpt) > 0 else tuple((np.random.random(3) * 0.6 + 0.4 * 255).astype(int))
-
-#             # Draw keypoints and skeletons on the white background image
-#             for sk in sks:
-#                 for i in range(len(sk) - 1):
-#                     start_point = (int(x[sk[i]]), int(y[sk[i]]))
-#                     end_point = (int(x[sk[i + 1]]), int(y[sk[i + 1]]))
-#                     cv2.line(keypoints_image, start_point, end_point, color, 1)  # Draw lines on keypoints_image
-
-#             for i in range(num_kpts):
-#                 cv2.circle(keypoints_image, (int(x[i]), int(y[i])), 4, color, -1)  # Draw circles on keypoints_image
-
-#     # Return the keypoints image with the white background
-#     return keypoints_image
-
 
 def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
     num_kpts = len(keypoint_text_prompt)
