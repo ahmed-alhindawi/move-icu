@@ -53,3 +53,32 @@ Then view the output using `rqt`; in another terminal:
 `rqt`
 
 Use the plugins file to visualise Images, there should be a `/landmarks_image` topic that can visualise that.
+
+## Running Unipose Model 
+
+Follow setup steps above. 
+
+Once built run:
+`source install/setup.bash`
+
+Install unipose model, run:
+'cd src/unipose/unipose/models/UniPose/ops'
+'python3 setup.py build install'
+'cd ../../../../../../'
+
+Launch Unipose: 
+Open new terminal, run: 
+`source /opt/ros/humble/setup.bash`
+`source install/setup.bash`
+'ros2 run launch unipose_launch.launch.py'
+
+View using rqt: 
+Topics: 
+/webcam - webcam image
+/pose_estimation - pose estimation on a white background
+/overlayed_image - pose estimation overlayed on the webcam image
+
+
+
+
+
