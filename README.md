@@ -62,9 +62,9 @@ Once built run:
 `source install/setup.bash`
 
 Install unipose model, run:
-'cd src/unipose/unipose/models/UniPose/ops'
-'python3 setup.py build install'
-'cd ../../../../../../'
+`cd src/unipose/unipose/models/UniPose/ops`
+`python3 setup.py build install`
+`cd ../../../../../../`
 
 Launch Unipose: 
 Open new terminal, run: 
