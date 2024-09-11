@@ -58,22 +58,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 # Install pip requirements
 ###########################
 RUN pip3 install --upgrade pip==24.1
-RUN pip3 install torch torchvision timm opencv-python transforms3d pyopengl setuptools==58.2.0 albumentations --no-binary albumentations,qudida 
-RUN pip3 install \
-    addict \
-    gradio \
-    ipdb \
-    matplotlib \
-    numpy \
-    pandas \
-    Pillow \
-    PyYAML \
-    seaborn \
-    termcolor \
-    transformers \
-    yapf \
-    git+https://github.com/openai/CLIP.git@dcba3cb2e2827b402d2701e7e1c7d9fed8a20ef1
-
+RUN pip3 install torch torchvision timm opencv-python transforms3d pyopengl setuptools==58.2.0 albumentations --no-binary albumentations,qudida
 
 ################
 # STEREOLABS ZED

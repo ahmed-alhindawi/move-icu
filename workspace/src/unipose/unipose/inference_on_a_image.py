@@ -100,7 +100,8 @@ def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
 
 
 def load_image(cv_image):
-    cv_image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+    #import pdb;pdb.set_trace()
+    cv_image_rgb = cv2.cvtColor(np.array(cv_image), cv2.COLOR_BGR2RGB)
     image_pil = Image.fromarray(cv_image_rgb)
     
     transform = T.Compose([
@@ -108,7 +109,7 @@ def load_image(cv_image):
         T.ToTensor(),
         T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
     ])
-    
+    #import pdb;pdb.set_trace()
     image = transform(image_pil)
     return image_pil, image
 

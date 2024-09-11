@@ -1,0 +1,17 @@
+addict
+gradio
+ipdb
+matplotlib
+numpy
+pandas
+Pillow
+PyYAML
+seaborn
+setuptools
+termcolor
+timm
+torch
+torchvision
+transformers
+yapf
+clip @ git+https://github.com/openai/CLIP.git@dcba3cb2e2827b402d2701e7e1c7d9fed8a20ef1

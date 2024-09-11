@@ -4,6 +4,7 @@ from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 import cv2
+import numpy as np
   
 class ImagePublisher(Node):
   
@@ -21,6 +22,8 @@ class ImagePublisher(Node):
           self.get_logger().error('Failed to capture image')
           return
       
+      #import pdb;pdb.set_trace()
+      frame = np.array(frame)
       # Convert the OpenCV image to a ROS Image message
       image_msg = self.br.cv2_to_imgmsg(frame, encoding="bgr8")
       
