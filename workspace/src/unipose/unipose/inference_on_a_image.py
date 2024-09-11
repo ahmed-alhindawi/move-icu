@@ -168,7 +168,6 @@ def get_unipose_output(model, image, instance_text_prompt, keypoint_text_prompt,
     keypoints = keypoints[keep]
 
     # Apply Non-Maximum Suppression (NMS)
-    # Apply Non-Maximum Suppression (NMS)
     keep_indices = nms(box_ops.box_cxcywh_to_xyxy(boxes), logits.max(dim=1)[0], iou_threshold=iou_threshold)
 
     # Filter boxes and keypoints based on the indices that survive NMS
@@ -206,6 +205,7 @@ class UniPoseLiveInferencer:
 
 
         # Run the model to get bounding boxes and keypoints
+        #import pdb;pdb.set_trace()
         boxes_filt, keypoints_filt = get_unipose_output(
             self.model, image, self.instance_text_prompt, self.keypoint_text_prompt, 
             box_threshold=box_threshold, iou_threshold=iou_threshold, 
