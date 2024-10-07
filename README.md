@@ -70,7 +70,7 @@ Launch Unipose:
 Open new terminal, run: 
 `source /opt/ros/humble/setup.bash`
 `source install/setup.bash`
-`ros2 run launch unipose_launch.launch.py`
+`ros2 launch unipose launch_unipose.launch.py`
 
 View using rqt: 
 Topics: 
