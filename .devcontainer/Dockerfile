@@ -1,7 +1,7 @@
 FROM docker.io/nvidia/cuda:12.5.0-devel-ubuntu22.04
 
 ENV DEBIAN_FRONTEND=noninteractive
-ARG USERNAME=root
+ARG USERNAME=ros
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
 
@@ -54,11 +54,19 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     bash-completion && \
     rm -rf /var/lib/apt/lists/*
 
+#############################
+# Create virtual environment
+#############################
+ENV VIRTUAL_ENV=/home/$USERNAME/venv
+RUN python3 -m venv $VIRTUAL_ENV --system-site-packages --symlinks
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
 ###########################
 # Install pip requirements
 ###########################
 RUN pip3 install --upgrade pip==24.1
 RUN pip3 install torch torchvision timm opencv-python transforms3d pyopengl setuptools==58.2.0 albumentations --no-binary albumentations,qudida
+RUN pip3 install mediapipe
 
 ################
 # STEREOLABS ZED

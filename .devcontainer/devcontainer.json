@@ -4,7 +4,7 @@
 		"dockerfile": "Dockerfile",
 		"context": ".."
 	},
-	"mounts": ["source=${localWorkspaceFolder}/workspace,target=/workspace/,type=bind,consistency=cached"], 
+	"mounts": ["source=${localWorkspaceFolder},target=/workspace/,type=bind,consistency=cached"], 
 	"workspaceFolder": "/workspace",
 	"containerEnv": {
 		"DISPLAY": ":0",
