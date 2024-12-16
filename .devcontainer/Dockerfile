@@ -60,6 +60,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 ENV VIRTUAL_ENV=/home/$USERNAME/venv
 RUN python3 -m venv $VIRTUAL_ENV --system-site-packages --symlinks
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+ENV PYTHONPATH="$VIRTUAL_ENV/lib/python3.10/site-packages:$PYTHONPATH"
 
 ###########################
 # Install pip requirements
