@@ -163,6 +163,7 @@ cython_debug/
 *.ckpt
 *.jit_model
 *.model
+*.pth
 # .*
 
 */build/
