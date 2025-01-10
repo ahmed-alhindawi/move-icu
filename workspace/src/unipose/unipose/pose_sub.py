@@ -2,8 +2,9 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
-import cv2
-import time
+import warnings
+import numpy as np
+
 from .inference_on_a_image import UniPoseLiveInferencer  # Adjust import as needed
 
 class ImageSubscriber(Node):
@@ -27,20 +28,18 @@ class ImageSubscriber(Node):
 
         #import pdb;pdb.set_trace()
         cv_image = self.br.imgmsg_to_cv2(data)
+        # print(cv_image.shape)
+        #import pdb;pdb.set_trace()
 
-        # Resize the image if needed (optional)
-        resized_image = cv2.resize(cv_image, (640, 480))
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            output_image = self.inferencer.run_inference(cv_image=cv_image)
 
-        start_time = time.time()
-        output_image = self.inferencer.run_inference(cv_image=resized_image)
-        end_time = time.time()
-
-        delay_2 = end_time - start_time
-
-        self.get_logger().info(f'Processing time: {delay_2:.2f} seconds')
+        # Create an Image message
+        output_image_msg = self.br.cv2_to_imgmsg(np.array(output_image, dtype=np.uint8),"rgb8")
         
-
-        output_image_msg = self.br.cv2_to_imgmsg(output_image, "bgr8")
+        #import pdb;pdb.set_trace()
+        # Publish the image message output_image_rgb = cv2.cvtColor(output_image, cv2.COLOR_BGR2RGB)
         self.publisher.publish(output_image_msg)
 
 

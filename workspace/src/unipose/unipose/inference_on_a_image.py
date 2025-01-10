@@ -1,3 +1,4 @@
+from email.mime import image
 import sys
 sys.path.insert(1, '.')
 
@@ -9,6 +10,7 @@ import torch
 from PIL import Image, ImageDraw, ImageFont
 import clip
 import torchvision.transforms as T
+import torchvision
 from src.unipose.unipose.models import build_model
 from src.unipose.unipose.predefined_keypoints import *
 from src.unipose.unipose.util import box_ops
@@ -22,6 +24,7 @@ from torchvision.ops import nms
 import cv2
 from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
 import io
+import einops
 
 def text_encoding(instance_names, keypoints_names, model, device):
     def encode_text(descriptions):
@@ -48,6 +51,7 @@ def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
     H, W = tgt["size"]
 
     # Convert PIL image to a NumPy array (OpenCV format)
+    # image_np = einops.rearrange(image_pil.cpu(), 'c h w -> h w c').contiguous().numpy()
     image_np = np.array(image_pil)
     
     # Create a white background image of the same size as the original
@@ -79,8 +83,8 @@ def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
             sks -= 1
 
         for idx, ann in enumerate(tgt['keypoints']):
-            kp = np.array(ann.cpu())
-            Z = kp[:num_kpts * 2] * np.array([W, H] * num_kpts)
+            kp = ann.cpu().numpy()
+            Z = kp[:num_kpts * 2] * np.array([int(W), int(H)] * num_kpts)
             x = Z[0::2]
             y = Z[1::2]
             color = color_kpt[idx % len(color_kpt)] if len(color_kpt) > 0 else tuple((np.random.random(3) * 0.6 + 0.4 * 255).astype(int))
@@ -95,32 +99,15 @@ def plot_keypoints(image_pil, tgt, keypoint_skeleton, keypoint_text_prompt):
             for i in range(num_kpts):
                 cv2.circle(keypoints_image, (int(x[i]), int(y[i])), 4, color, -1)
 
-    return keypoints_image
+    return image_np
 
-
-
-def load_image(cv_image):
-    #import pdb;pdb.set_trace()
-    cv_image_rgb = cv2.cvtColor(np.array(cv_image), cv2.COLOR_BGR2RGB)
-    image_pil = Image.fromarray(cv_image_rgb)
-    
-    transform = T.Compose([
-        T.Resize(600),
-        T.ToTensor(),
-        T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
-    ])
-    #import pdb;pdb.set_trace()
-    image = transform(image_pil)
-    return image_pil, image
-
-def load_model(model_config_path, model_checkpoint_path, cpu_only=False, device = "cpu"):
+def load_model(model_config_path, model_checkpoint_path, cpu_only=False):
     args = Config.fromfile(model_config_path)
     args.device = device
     model = build_model(args)
-    checkpoint = torch.load(model_checkpoint_path, map_location="cpu")
-    load_res = model.load_state_dict(clean_state_dict(checkpoint["model"]), strict=False)
-    print(load_res)
-    _ = model.eval()
+    checkpoint = torch.load(model_checkpoint_path, map_location=args.device)
+    model.load_state_dict(clean_state_dict(checkpoint["model"]), strict=False)
+    model.eval()
     return model
 
 
@@ -145,9 +132,10 @@ def get_unipose_output(model, image, instance_text_prompt, keypoint_text_prompt,
         ], dim=0)
     }
 
+    # Ensure the model is on the correct device
+    image = image.to(device)
 
-
-    with torch.no_grad():
+    with torch.inference_mode():
         outputs = model(image[None], [target])
 
     # Extract and process outputs
@@ -177,8 +165,6 @@ def get_unipose_output(model, image, instance_text_prompt, keypoint_text_prompt,
 
     return filtered_boxes, filtered_keypoints
 
-
-
 class UniPoseLiveInferencer:
     def __init__(self, config_file, checkpoint_path, cpu_only=False):
         self.device = "cpu" if cpu_only else "cuda"
@@ -193,15 +179,27 @@ class UniPoseLiveInferencer:
         self.keypoint_text_prompt = self.keypoint_dict.get("keypoints", [])
         self.keypoint_skeleton = self.keypoint_dict.get("skeleton", [])
 
+        self.transform = T.Compose([
+            T.Resize(400, interpolation=torchvision.transforms.InterpolationMode.BILINEAR),
+            T.ToTensor(),
+            T.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+        ])
+    
+
+    def load_image(self, cv_image):
+        # cv_image = np.array(cv_image, dtype=np.uint8)
+        image_pil = Image.fromarray(cv_image)
+    
+        image = self.transform(image_pil)
+        return image_pil, image
+
     def load_model(self, config_file, checkpoint_path):
         model = load_model(config_file, checkpoint_path, cpu_only=(self.device == "cpu"))
         return model
 
     def run_inference(self, cv_image, box_threshold=0.1, iou_threshold=0.8):
-
         # Convert the cv2 image to a PIL image
-        image_pil, image = load_image(cv_image)
-        image = image.to(self.device)
+        image_pil, image = self.load_image(cv_image)
 
 
         # Run the model to get bounding boxes and keypoints
