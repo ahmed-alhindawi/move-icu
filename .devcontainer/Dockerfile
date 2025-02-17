@@ -73,7 +73,7 @@ RUN pip3 install mediapipe
 # STEREOLABS ZED
 ################
 RUN wget -q -O ZED_SDK_Linux_Ubuntu22.run https://download.stereolabs.com/zedsdk/4.1/cu121/ubuntu22 && \
-    chmod +x ZED_SDK_Linux_Ubuntu22.run ; ./ZED_SDK_Linux_Ubuntu22.run silent skip_cuda && \
+    chmod +x ZED_SDK_Linux_Ubuntu22.run ; ./ZED_SDK_Linux_Ubuntu22.run -- silent skip_cuda && \
     ln -sf /lib/x86_64-linux-gnu/libusb-1.0.so.0 /usr/lib/x86_64-linux-gnu/libusb-1.0.so && \
     rm ZED_SDK_Linux_Ubuntu22.run && \
     rm -rf /var/lib/apt/lists/*
@@ -102,6 +102,8 @@ RUN apt-get update -q && add-apt-repository universe && \
     rm -rf /var/lib/apt/lists/*
 
 RUN rosdep init && rosdep update --rosdistro $ROS_DISTRO
+
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model
 # COPY *.8600_timing_cache /usr/local/zed/resources/.8600_timing_cache

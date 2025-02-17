@@ -25,6 +25,7 @@ setup(
     entry_points={
         'console_scripts': [
             'mpipe_webcam_node = mpipe.mpipe_webcam_node:main',
+            'mpipe_zedcam_node = mpipe.mpipe_zedcam_node:main',
             'mpipe_pose_estimator_node = mpipe.mpipe_pose_estimator_node:main'
         ],
     },

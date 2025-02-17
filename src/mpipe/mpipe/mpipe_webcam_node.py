@@ -18,7 +18,7 @@ class WebcamImagePublisher(Node):
         while self.cap.isOpened():
             ret, frame = self.cap.read()
             if not ret:
-                    print("Error: Failed to cappture frame.")
+                    print("Error: Failed to capture frame.")
                     break
             
             try:

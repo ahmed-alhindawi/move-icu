@@ -47,7 +47,7 @@ Once that finishes, source the installation files:
 Then run the demo (make sure you have a webcam attached to /dev/video0):
 `ros2 launch landmark_d webcam_landmark_d.launch.py`
 
-(For MediaPipe skeleton tracking run `ros2 launch mpipe mpipe_launch.py` instead.)
+(For MediaPipe skeleton tracking run `ros2 launch mpipe mpipe_webcam_launch.py` instead.)
 
 ### View
 Then view the output using `rqt`; in another terminal:
