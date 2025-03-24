@@ -39,12 +39,14 @@ If running the code for the first time on your device, open a command line conso
 
 Paste the following into the file:
 
-`# IP fragmentation settings`
-`net.ipv4.ipfrag_time=3  # in seconds, default is 30 s`
-`net.ipv4.ipfrag_high_thresh=134217728  # 128 MiB, default is 256 KiB`
+```
+# IP fragmentation settings
+net.ipv4.ipfrag_time=3  # in seconds, default is 30 s
+net.ipv4.ipfrag_high_thresh=134217728  # 128 MiB, default is 256 KiB
 
-`# Increase the maximum receive buffer size for network packets`
-`net.core.rmem_max=2147483647  # 2 GiB, default is 208 KiB`
+# Increase the maximum receive buffer size for network packets
+net.core.rmem_max=2147483647  # 2 GiB, default is 208 KiB
+```
 
 Save the file and reboot.
 
