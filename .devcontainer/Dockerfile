@@ -98,11 +98,13 @@ RUN apt-get update -q && add-apt-repository universe && \
     ros-${ROS_DISTRO}-geographic-msgs \
     ros-${ROS_DISTRO}-diagnostic-updater \
     ros-${ROS_DISTRO}-robot-localization \
+    ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-common-interfaces && \
     rm -rf /var/lib/apt/lists/*
 
 RUN rosdep init && rosdep update --rosdistro $ROS_DISTRO
 
+RUN echo export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp >> ~/.bashrc
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
 
 # COPY *neural_depth_2.0_2080.model /usr/local/zed/resources/neural_depth_2.0.model

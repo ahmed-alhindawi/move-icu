@@ -2,6 +2,7 @@ import mediapipe as mp
 import cv2
 import numpy as np
 import pyzed.sl as sl
+import time
 
 def standalone_webcam_pose_detection():
     '''
@@ -21,6 +22,8 @@ def standalone_webcam_pose_detection():
     mp_pose = mp.solutions.pose
     mp_drawing = mp.solutions.drawing_utils
 
+    prev_time = time.time() 
+
     with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose:
 
         while cap.isOpened():
@@ -30,6 +33,15 @@ def standalone_webcam_pose_detection():
                     print("Error: Failed to capture frame.")
                     break
             
+
+            # Calculate FPS
+            curr_time = time.time()
+            fps = 1 / (curr_time - prev_time)
+            prev_time = curr_time
+
+            # Print FPS to the console
+            print(f"FPS: {fps:.2f}")
+
             # Recolor image to RGB
             image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
             image.flags.writeable = False
@@ -125,5 +137,5 @@ def standalone_zedcam_pose_detection():
 
 
 if __name__ == "__main__":
-     # standalone_webcam_pose_detection()
-     standalone_zedcam_pose_detection()
+     standalone_webcam_pose_detection()
+     #standalone_zedcam_pose_detection()
