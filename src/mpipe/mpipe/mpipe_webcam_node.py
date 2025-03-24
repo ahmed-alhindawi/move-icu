@@ -21,7 +21,7 @@ class WebcamPublisher(Node):
         self._cap = cv2.VideoCapture(0)
         self._cvbridge = CvBridge()
 
-        self.create_timer(1 / 30.0, self.publish_frame)  # 1/30.0 seconds
+        self.create_timer(1 / 30.0, self.publish_frame)
 
 
     def publish_frame(self):
