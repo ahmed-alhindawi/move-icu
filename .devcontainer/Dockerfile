@@ -36,6 +36,7 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
     openssh-client \
     python3-argcomplete \
     python3-pip \
+    python3-venv \
     vim \
     lsb-release \
     wget \
@@ -57,8 +58,14 @@ RUN apt-get update -qq && apt-get install -y --no-install-recommends \
 ###########################
 # Install pip requirements
 ###########################
-RUN pip3 install --upgrade pip==24.1
-RUN pip3 install torch torchvision timm opencv-python transforms3d pyopengl setuptools==58.2.0 albumentations --no-binary albumentations,qudida
+# RUN pip3 install --upgrade pip==24.1
+# create a venv for the user
+ENV VIRTUAL_ENV=/home/$USERNAME/.venv
+RUN python3 -m venv $VIRTUAL_ENV
+ENV PATH="$VIRTUAL_ENV/bin:$PATH"
+
+# setuptools==58.2.0
+RUN pip3 install torch torchvision timm opencv-python transforms3d pyopengl albumentations --no-binary albumentations,qudida
 
 ################
 # STEREOLABS ZED

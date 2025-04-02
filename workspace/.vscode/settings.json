@@ -1,0 +1,28 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/workspace/build/webcam",
+        "/workspace/install/webcam/lib/python3.10/site-packages",
+        "/workspace/build/unipose",
+        "/workspace/install/unipose/lib/python3.10/site-packages",
+        "/workspace/install/moveicu_interfaces/local/lib/python3.10/dist-packages",
+        "/workspace/build/landmark_d",
+        "/workspace/install/landmark_d/lib/python3.10/site-packages",
+        "/workspace/build/face_d",
+        "/workspace/install/face_d/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages"
+    ],
+    "python.analysis.extraPaths": [
+        "/workspace/build/webcam",
+        "/workspace/install/webcam/lib/python3.10/site-packages",
+        "/workspace/build/unipose",
+        "/workspace/install/unipose/lib/python3.10/site-packages",
+        "/workspace/install/moveicu_interfaces/local/lib/python3.10/dist-packages",
+        "/workspace/build/landmark_d",
+        "/workspace/install/landmark_d/lib/python3.10/site-packages",
+        "/workspace/build/face_d",
+        "/workspace/install/face_d/lib/python3.10/site-packages",
+        "/opt/ros/humble/local/lib/python3.10/dist-packages",
+        "/opt/ros/humble/lib/python3.10/site-packages"
+    ]
+}
